@@ -12,7 +12,7 @@ public class AwsSQSClientTemplate {
     private final String channel;
     private final AwsSQSClientPool clientPool;
 
-    public AwsSQSClientTemplate(AwsSQSClientTemplateBuilder builder) {
+    private AwsSQSClientTemplate(AwsSQSClientTemplateBuilder builder) {
         validationAttribute(builder);
         this.channel = builder.channel;
         this.clientPool = createPool(builder);

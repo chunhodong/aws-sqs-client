@@ -1,11 +1,16 @@
-package com.github.chunhodong.awssqsclient.client;
+package com.github.chunhodong.awssqsclient.template;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
+import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
-public class AwsSQSClientTemplate {
+public class AwsSQSClientTemplate<T> {
 
     private static final int DEFAULT_MAX_POOL_SIZE = 100;
     private static final int DEFAULT_MIN_POOL_SIZE = 1;
@@ -19,8 +24,21 @@ public class AwsSQSClientTemplate {
     }
 
     private AwsSQSClientPool createPool(AwsSQSClientTemplateBuilder builder) {
-        return null;
+        int maxPoolSize = getPoolSize(builder.isFixedPoolsize, builder.poolSize);
+        List<SQSClient<T>> clients = createClients(builder.isFixedPoolsize, maxPoolSize, builder.asyncClient);
+        return new FlexibleAwsSQSClientPool(maxPoolSize,clients, builder.asyncClient);
     }
+
+    private List<SQSClient<T>> createClients(boolean isFixedPoolsize, int maxPoolSize, AmazonSQSBufferedAsyncClient asyncClient) {
+        return isFixedPoolsize
+                ? Collections.nCopies(maxPoolSize, new AwsSQSClient(new QueueMessagingTemplate(asyncClient)))
+                : Collections.nCopies(DEFAULT_MIN_POOL_SIZE, new AwsSQSClient(new QueueMessagingTemplate(asyncClient)));
+    }
+
+    private int getPoolSize(boolean isFixedPoolsize, int maxPoolSize) {
+        return !isFixedPoolsize && Objects.isNull(maxPoolSize) ? DEFAULT_MAX_POOL_SIZE : maxPoolSize;
+    }
+
 
     private void validationAttribute(AwsSQSClientTemplateBuilder builder) {
         Objects.requireNonNull(builder);

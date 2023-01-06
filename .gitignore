@@ -21,10 +21,12 @@ bin/
 .idea
 *.iws
 *.iml
+*.yml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
 
 ### NetBeans ###
 /nbproject/private/

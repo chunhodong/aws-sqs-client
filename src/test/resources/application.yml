@@ -7,7 +7,7 @@ cloud:
       bucket: test
     region:
       auto: false
-      static: ap-northeast-2
+      static: test
     stack:
       auto: false
     sqs:

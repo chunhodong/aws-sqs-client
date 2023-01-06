@@ -25,8 +25,8 @@ public class AwsConfig {
     @Bean
     public AmazonSQSBufferedAsyncClient asyncClient(){
         AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("accessKey", "secretKey")))
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("url", "region"));
+                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(url, region));
         return new AmazonSQSBufferedAsyncClient(builder.build());
     }
 }

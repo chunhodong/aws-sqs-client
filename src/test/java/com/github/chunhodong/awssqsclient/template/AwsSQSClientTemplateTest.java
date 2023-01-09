@@ -1,17 +1,11 @@
-package com.github.chunhodong.awssqsclient.client;
+package com.github.chunhodong.awssqsclient.template;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.config.AwsConfig;
-import com.github.chunhodong.awssqsclient.template.AwsSQSClientTemplate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
@@ -27,7 +21,7 @@ public class AwsSQSClientTemplateTest {
     @Test
     @Disabled
     @DisplayName("템플릿 객체를 생성한다")
-    void createClientTemplate(){
+    void createClientTemplate() {
         AwsSQSClientTemplate awsSQSClientTemplate = AwsSQSClientTemplate.builder()
                 .asyncClient(new AmazonSQSBufferedAsyncClient(asyncClient))
                 .channel("test")
@@ -38,7 +32,7 @@ public class AwsSQSClientTemplateTest {
 
     @Test
     @DisplayName("템플릿 객체에 전송채널이름이 없으면 생성실패")
-    void throwsExceptionWhenChanneIsNull(){
+    void throwsExceptionWhenChanneIsNull() {
         assertThatThrownBy(() -> AwsSQSClientTemplate.builder()
                 .asyncClient(new AmazonSQSBufferedAsyncClient(null))
                 .build())
@@ -47,7 +41,7 @@ public class AwsSQSClientTemplateTest {
 
     @Test
     @DisplayName("템플릿 객체에 AmazonSQSBufferedAsyncClient객체가 없으면 예외발생")
-    void throwsExceptionWhenAwsSQSClientIsNull(){
+    void throwsExceptionWhenAwsSQSClientIsNull() {
         assertThatThrownBy(() -> AwsSQSClientTemplate.builder()
                 .channel("test channel")
                 .build())

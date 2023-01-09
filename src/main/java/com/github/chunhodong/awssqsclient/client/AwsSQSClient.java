@@ -1,11 +1,10 @@
 package com.github.chunhodong.awssqsclient.client;
 
-import com.github.chunhodong.awssqsclient.message.PushMessage;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 
 import java.util.Objects;
 
-public class AwsSQSClient implements SQSClient<PushMessage> {
+public class AwsSQSClient implements SQSClient {
 
     private QueueMessagingTemplate queueMessagingTemplate;
 
@@ -15,7 +14,7 @@ public class AwsSQSClient implements SQSClient<PushMessage> {
     }
 
     @Override
-    public void send(String channel, PushMessage pushMessage) {
-
+    public void send(String channel, Object pushMessage) {
+        queueMessagingTemplate.convertAndSend(channel, pushMessage);
     }
 }

@@ -25,19 +25,9 @@ public class AwsSQSClientTemplate<T> {
     }
 
     private AwsSQSClientPool createPool(AwsSQSClientTemplateBuilder builder) {
-        int maxPoolSize = getPoolSize(builder.isFixedPoolsize, builder.poolSize);
-        List<SQSClient> clients = createClients(builder.isFixedPoolsize, maxPoolSize, builder.asyncClient);
-        return new AwsSQSClientPool() {
-            @Override
-            public SQSClient getClient() {
-                return null;
-            }
-
-            @Override
-            public int hashCode() {
-                return super.hashCode();
-            }
-        };
+        int poolSize = getPoolSize(builder.isFixedPoolsize, builder.poolSize);
+        List<SQSClient> clients = createClients(builder.isFixedPoolsize, poolSize, builder.asyncClient);
+        return new DefaultAwsSQSClientPool(poolSize,clients, builder.asyncClient);
     }
 
     private List<SQSClient> createClients(boolean isFixedPoolsize, int maxPoolSize, AmazonSQSBufferedAsyncClient asyncClient) {

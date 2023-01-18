@@ -12,4 +12,8 @@ public class PoolEntry {
         Objects.nonNull(sqsClient);
         this.sqsClient = sqsClient;
     }
+
+    public SQSClient getSqsClient() {
+        return sqsClient;
+    }
 }

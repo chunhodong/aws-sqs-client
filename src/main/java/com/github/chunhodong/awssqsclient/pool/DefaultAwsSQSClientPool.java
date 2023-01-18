@@ -23,16 +23,16 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
                                    List<SQSClient> clients,
                                    AmazonSQSBufferedAsyncClient asyncClient,
                                    Timeout connectionTimeout,
-                                   Timeout idleTimeout
-    ) {
-        validateClientPool(clients, asyncClient, connectionTimeout);
+                                   Timeout idleTimeout)
+    {
+        validateClientPool(clients, asyncClient);
         List<PoolEntry> entries = clients.stream().map(PoolEntry::new).collect(Collectors.toList());
         this.poolSize = poolSize;
         this.entries = Collections.synchronizedList(entries);
         this.asyncClient = asyncClient;
         this.clientRequestTime = new ThreadLocal();
-        this.connectionTimeout = connectionTimeout;
-        this.idleTimeout = idleTimeout;
+        this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout,Timeout.defaultConnectionTime());
+        this.idleTimeout = Objects.requireNonNullElse(idleTimeout,Timeout.defaultIdleTime());
     }
 
     public DefaultAwsSQSClientPool(int poolSize,
@@ -41,10 +41,9 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         this(poolSize, clients, asyncClient, Timeout.defaultConnectionTime(), Timeout.defaultIdleTime());
     }
 
-    private void validateClientPool(List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient, Timeout timeout) {
-        Objects.nonNull(clients);
-        Objects.nonNull(asyncClient);
-        Objects.nonNull(timeout);
+    private void validateClientPool(List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
+        Objects.requireNonNull(clients);
+        Objects.requireNonNull(asyncClient);
     }
 
     @Override

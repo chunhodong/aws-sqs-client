@@ -1,29 +1,23 @@
 package com.github.chunhodong.awssqsclient.template;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.github.chunhodong.awssqsclient.config.AwsConfig;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Import({AwsConfig.class})
-@SpringBootTest
+
 public class AwsSQSClientTemplateTest {
-    @Autowired
-    public AmazonSQSBufferedAsyncClient asyncClient;
+
 
     @Test
     @Disabled
     @DisplayName("템플릿 객체를 생성한다")
     void createClientTemplate() {
         AwsSQSClientTemplate awsSQSClientTemplate = AwsSQSClientTemplate.builder()
-                .asyncClient(new AmazonSQSBufferedAsyncClient(asyncClient))
+                .asyncClient(new AmazonSQSBufferedAsyncClient(null))
                 .channel("test")
                 .build();
 
@@ -44,6 +38,17 @@ public class AwsSQSClientTemplateTest {
     void throwsExceptionWhenAwsSQSClientIsNull() {
         assertThatThrownBy(() -> AwsSQSClientTemplate.builder()
                 .channel("test channel")
+                .build())
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("템플릿 객체에 고정사이트풀인데 poolSize가 없으면 생성실패")
+    void throwsExceptionWhenNonePoolSizeIfFixedPool() {
+        assertThatThrownBy(() -> AwsSQSClientTemplate.builder()
+                .asyncClient(new AmazonSQSBufferedAsyncClient(null))
+                .channel("test channel")
+                .isFixedPoolsize(true)
                 .build())
                 .isInstanceOf(NullPointerException.class);
     }

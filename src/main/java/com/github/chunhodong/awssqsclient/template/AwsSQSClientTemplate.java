@@ -4,6 +4,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
+import com.github.chunhodong.awssqsclient.pool.DefaultAwsSQSClientPool;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -27,7 +28,7 @@ public class AwsSQSClientTemplate<T> {
     private AwsSQSClientPool createPool(AwsSQSClientTemplateBuilder builder) {
         int poolSize = getPoolSize(builder.isFixedPoolsize, builder.poolSize);
         List<SQSClient> clients = createClients(builder.isFixedPoolsize, poolSize, builder.asyncClient);
-        return new DefaultAwsSQSClientPool(poolSize,clients, builder.asyncClient);
+        return new DefaultAwsSQSClientPool(poolSize, clients, builder.asyncClient);
     }
 
     private List<SQSClient> createClients(boolean isFixedPoolsize, int maxPoolSize, AmazonSQSBufferedAsyncClient asyncClient) {

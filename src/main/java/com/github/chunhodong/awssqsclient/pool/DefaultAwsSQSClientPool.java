@@ -1,6 +1,7 @@
 package com.github.chunhodong.awssqsclient.pool;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import com.github.chunhodong.awssqsclient.client.ProxyAwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.utils.Timeout;
 
@@ -48,6 +49,13 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
 
     @Override
     public SQSClient getClient() {
+        PoolEntry entry = getEntry();
+        ProxyAwsSQSClient proxyAwsSQSClient = new ProxyAwsSQSClient(entry);
+        return proxyAwsSQSClient;
+    }
+
+    @Override
+    public PoolEntry getEntry() {
         return null;
     }
 }

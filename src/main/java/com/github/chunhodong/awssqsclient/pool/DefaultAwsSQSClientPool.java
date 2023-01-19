@@ -56,6 +56,17 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
 
     @Override
     public PoolEntry getEntry() {
-        return null;
+        clientRequestTime.set(LocalDateTime.now());
+        do {
+            for (int i = 0; i < entries.size(); i++) {
+
+            }
+        } while (isTimeout());
+        clientRequestTime.remove();
+        throw new ClientPoolRequestTimeoutException();
+    }
+
+    private boolean isTimeout() {
+        return !connectionTimeout.isAfter(clientRequestTime.get());
     }
 }

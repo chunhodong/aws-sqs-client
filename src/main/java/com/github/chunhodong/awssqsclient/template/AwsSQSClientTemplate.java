@@ -40,9 +40,9 @@ public class AwsSQSClientTemplate<T> {
         return !isFixedPoolsize && Objects.isNull(maxPoolSize) ? DEFAULT_MAX_POOL_SIZE : maxPoolSize;
     }
 
-    public void send(T pushMessage) {
+    public void send(T message) {
         SQSClient sqsClient = clientPool.getClient();
-        sqsClient.send(channel, pushMessage);
+        sqsClient.send(channel, message);
     }
 
     private void validationAttribute(AwsSQSClientTemplateBuilder builder) {

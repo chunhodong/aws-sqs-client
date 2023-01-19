@@ -17,7 +17,7 @@ public class ProxyAwsSQSClient implements SQSClient {
     }
 
     @Override
-    public void send(String channel, Object pushMessage) {
+    public void send(String channel, Object message) {
 
     }
 }

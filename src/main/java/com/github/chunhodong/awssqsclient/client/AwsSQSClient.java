@@ -14,14 +14,14 @@ public class AwsSQSClient implements SQSClient {
     private final QueueMessagingTemplate queueMessagingTemplate;
 
     @Override
-    public void send(String channel, Object pushMessage) {
-        validateMessage(channel, pushMessage);
-        queueMessagingTemplate.convertAndSend(channel, pushMessage);
+    public void send(String channel, Object message) {
+        validateMessage(channel, message);
+        queueMessagingTemplate.convertAndSend(channel, message);
     }
 
-    private void validateMessage(String channel, Object pushMessage) {
+    private void validateMessage(String channel, Object message) {
         Objects.nonNull(channel);
-        Objects.nonNull(pushMessage);
+        Objects.nonNull(message);
     }
 
     public static AwsSQSClient createClient(AmazonSQSBufferedAsyncClient asyncClient) {

@@ -33,7 +33,7 @@ public class Timeout {
     }
 
     public boolean isAfter(LocalDateTime dateTime) {
-        return ChronoUnit.SECONDS.between(dateTime, LocalDateTime.now()) > timeValue;
+        return Objects.isNull(dateTime) ? false : ChronoUnit.SECONDS.between(dateTime, LocalDateTime.now()) > timeValue;
     }
 
     public long toMilis() {

@@ -24,16 +24,15 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
                                    List<SQSClient> clients,
                                    AmazonSQSBufferedAsyncClient asyncClient,
                                    Timeout connectionTimeout,
-                                   Timeout idleTimeout)
-    {
+                                   Timeout idleTimeout) {
         validateClientPool(clients, asyncClient);
         List<PoolEntry> entries = clients.stream().map(PoolEntry::new).collect(Collectors.toList());
         this.poolSize = poolSize;
         this.entries = Collections.synchronizedList(entries);
         this.asyncClient = asyncClient;
         this.clientRequestTime = new ThreadLocal();
-        this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout,Timeout.defaultConnectionTime());
-        this.idleTimeout = Objects.requireNonNullElse(idleTimeout,Timeout.defaultIdleTime());
+        this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout, Timeout.defaultConnectionTime());
+        this.idleTimeout = Objects.requireNonNullElse(idleTimeout, Timeout.defaultIdleTime());
     }
 
     public DefaultAwsSQSClientPool(int poolSize,
@@ -59,7 +58,19 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         clientRequestTime.set(LocalDateTime.now());
         do {
             for (int i = 0; i < entries.size(); i++) {
-
+                PoolEntry poolEntry = entries.get(i);
+                if (!poolEntry.isUse()) {
+                    try {
+                        poolEntry.accessLock();
+                        if (!poolEntry.isUse()) {
+                            poolEntry.use();
+                            return poolEntry;
+                        }
+                    } finally {
+                        clientRequestTime.remove();
+                        poolEntry.releaseLock();
+                    }
+                }
             }
         } while (isTimeout());
         clientRequestTime.remove();

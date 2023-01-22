@@ -6,9 +6,7 @@ import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.utils.Timeout;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
@@ -19,6 +17,7 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     private final AmazonSQSBufferedAsyncClient asyncClient;
     private final Timeout connectionTimeout;
     private final Timeout idleTimeout;
+    private final Map<ProxyAwsSQSClient, PoolEntry> proxySQSClients;
 
     public DefaultAwsSQSClientPool(int poolSize,
                                    List<SQSClient> clients,
@@ -33,6 +32,7 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         this.clientRequestTime = new ThreadLocal();
         this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout, Timeout.defaultConnectionTime());
         this.idleTimeout = Objects.requireNonNullElse(idleTimeout, Timeout.defaultIdleTime());
+        this.proxySQSClients = Collections.synchronizedMap(new HashMap());
     }
 
     public DefaultAwsSQSClientPool(int poolSize,
@@ -60,13 +60,17 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
             for (int i = 0; i < entries.size(); i++) {
                 PoolEntry poolEntry = entries.get(i);
                 if (!poolEntry.isUse()) {
-                    try {
+                    try
+                    {
                         poolEntry.accessLock();
-                        if (!poolEntry.isUse()) {
+                        if (!poolEntry.isUse())
+                        {
                             poolEntry.use();
                             return poolEntry;
                         }
-                    } finally {
+                    }
+                    finally
+                    {
                         clientRequestTime.remove();
                         poolEntry.releaseLock();
                     }
@@ -75,6 +79,12 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         } while (isTimeout());
         clientRequestTime.remove();
         throw new ClientPoolRequestTimeoutException();
+    }
+
+    @Override
+    public void release(SQSClient sqsClient) {
+        PoolEntry poolEntry = proxySQSClients.get(sqsClient);
+        poolEntry.unuse();
     }
 
     private boolean isTimeout() {

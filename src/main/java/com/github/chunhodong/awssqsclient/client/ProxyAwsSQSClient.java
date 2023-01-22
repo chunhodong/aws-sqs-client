@@ -18,7 +18,7 @@ public class ProxyAwsSQSClient implements SQSClient {
 
     @Override
     public void send(String channel, Object message) {
-
+        sqsClient.send(channel, message);
     }
 }
 

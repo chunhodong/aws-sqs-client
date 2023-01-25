@@ -59,22 +59,11 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         do {
             for (int i = 0; i < entries.size(); i++) {
                 PoolEntry poolEntry = entries.get(i);
-                if (!poolEntry.isUse()) {
-                    try
-                    {
-                        poolEntry.accessLock();
-                        if (!poolEntry.isUse())
-                        {
-                            poolEntry.use();
-                            return poolEntry;
-                        }
-                    }
-                    finally
-                    {
-                        clientRequestTime.remove();
-                        poolEntry.releaseLock();
-                    }
-                }
+                if(poolEntry.isUse())continue;
+                if(poolEntry.using()){
+                    clientRequestTime.remove();
+                    return poolEntry;
+                };
             }
         } while (isTimeout());
         clientRequestTime.remove();

@@ -13,7 +13,7 @@ public class PoolEntry {
     public PoolEntry(SQSClient sqsClient) {
         Objects.nonNull(sqsClient);
         this.sqsClient = sqsClient;
-        this.state = PoolEntryState.IN_NOT_USE;
+        this.state = PoolEntryState.OPEN;
         this.mutex = this;
     }
 
@@ -21,25 +21,23 @@ public class PoolEntry {
         return sqsClient;
     }
 
-    public boolean isUse() {
-        return state == PoolEntryState.IN_USE;
+    public boolean isClose() {
+        return state == PoolEntryState.CLOSE;
     }
 
-    public void use() {
-        state = PoolEntryState.IN_USE;
+    public void open() {
+        state = PoolEntryState.OPEN;
     }
 
-    public void unuse() {
-        state = PoolEntryState.IN_NOT_USE;
-    }
 
-    public boolean using() {
+    public boolean close() {
         synchronized (mutex) {
-            if (state == PoolEntryState.IN_NOT_USE) {
-                state = PoolEntryState.IN_USE;
+            if (state == PoolEntryState.OPEN) {
+                state = PoolEntryState.CLOSE;
                 return true;
             }
+            return false;
         }
-        return false;
     }
+
 }

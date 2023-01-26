@@ -12,9 +12,9 @@ public class PoolEntryTest {
     void returnUseState() {
         PoolEntry poolEntry = new PoolEntry((channel, message) -> {
         });
-        poolEntry.use();
+        poolEntry.close();
 
-        assertThat(poolEntry.isUse()).isTrue();
+        assertThat(poolEntry.isClose()).isTrue();
 
     }
 
@@ -23,9 +23,9 @@ public class PoolEntryTest {
     void returnUnuseState() {
         PoolEntry poolEntry = new PoolEntry((channel, message) -> {
         });
-        poolEntry.unuse();
+        poolEntry.open();
 
-        assertThat(poolEntry.isUse()).isFalse();
+        assertThat(poolEntry.isClose()).isFalse();
     }
 
 }

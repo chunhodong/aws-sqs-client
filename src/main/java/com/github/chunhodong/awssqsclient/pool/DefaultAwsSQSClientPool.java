@@ -59,11 +59,11 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         do {
             for (int i = 0; i < entries.size(); i++) {
                 PoolEntry poolEntry = entries.get(i);
-                if(poolEntry.isUse())continue;
-                if(poolEntry.using()){
+                if(poolEntry.isClose())continue;
+                if(poolEntry.close()){
                     clientRequestTime.remove();
                     return poolEntry;
-                };
+                }
             }
         } while (isTimeout());
         clientRequestTime.remove();
@@ -73,7 +73,7 @@ public class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     @Override
     public void release(SQSClient sqsClient) {
         PoolEntry poolEntry = proxySQSClients.get(sqsClient);
-        poolEntry.unuse();
+        poolEntry.open();
     }
 
     private boolean isTimeout() {

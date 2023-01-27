@@ -41,8 +41,15 @@ public class AwsSQSClientTemplate<T> {
     }
 
     public void send(T message) {
-        SQSClient sqsClient = clientPool.getClient();
-        sqsClient.send(channel, message);
+        SQSClient sqsClient = null;
+        try {
+            sqsClient = clientPool.getClient();
+            sqsClient.send(channel, message);
+        } finally {
+            if (Objects.nonNull(sqsClient)) {
+                clientPool.release(sqsClient);
+            }
+        }
     }
 
     private void validationAttribute(AwsSQSClientTemplateBuilder builder) {

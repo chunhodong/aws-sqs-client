@@ -22,7 +22,7 @@ public class DefaultAwsSQSClientPoolTest {
                 .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("accessKey", "secretKey")));
         AmazonSQSBufferedAsyncClient asyncClient = new AmazonSQSBufferedAsyncClient(builder.build());
         List<SQSClient> sqsClients = new ArrayList<>();
-        new DefaultAwsSQSClientPool(100, sqsClients, asyncClient);
+        new FixedAwsSQSClientPool(sqsClients, asyncClient);
     }
 
     @Test
@@ -31,7 +31,7 @@ public class DefaultAwsSQSClientPoolTest {
         AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("accessKey", "secretKey")));
         AmazonSQSBufferedAsyncClient asyncClient = new AmazonSQSBufferedAsyncClient(builder.build());
-        assertThatThrownBy(() -> new DefaultAwsSQSClientPool(100, null, asyncClient))
+        assertThatThrownBy(() -> new FixedAwsSQSClientPool(null, asyncClient))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -40,7 +40,7 @@ public class DefaultAwsSQSClientPoolTest {
     void throwsExceptionWhenAsyncClientIsNull() {
         List<SQSClient> sqsClients = new ArrayList<>();
 
-        assertThatThrownBy(() -> new DefaultAwsSQSClientPool(100, sqsClients, null))
+        assertThatThrownBy(() -> new FixedAwsSQSClientPool(sqsClients, null))
                 .isInstanceOf(NullPointerException.class);
     }
 

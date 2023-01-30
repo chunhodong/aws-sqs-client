@@ -7,13 +7,19 @@ import java.util.Objects;
 public class PoolEntry {
 
     private final SQSClient sqsClient;
-    private PoolEntryState state;
+    private PoolEntryState state = PoolEntryState.OPEN;
     private final Object mutex;
 
     public PoolEntry(SQSClient sqsClient) {
         Objects.nonNull(sqsClient);
         this.sqsClient = sqsClient;
-        this.state = PoolEntryState.OPEN;
+        this.mutex = this;
+    }
+
+    public PoolEntry(SQSClient sqsClient,PoolEntryState state) {
+        Objects.nonNull(sqsClient);
+        this.sqsClient = sqsClient;
+        this.state = state;
         this.mutex = this;
     }
 

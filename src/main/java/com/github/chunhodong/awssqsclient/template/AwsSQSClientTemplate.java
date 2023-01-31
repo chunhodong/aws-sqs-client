@@ -4,7 +4,8 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
-import com.github.chunhodong.awssqsclient.pool.DefaultAwsSQSClientPool;
+import com.github.chunhodong.awssqsclient.pool.FixedAwsSQSClientPool;
+import com.github.chunhodong.awssqsclient.pool.FlexibleAwsSQSClientPool;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -28,7 +29,9 @@ public class AwsSQSClientTemplate<T> {
     private AwsSQSClientPool createPool(AwsSQSClientTemplateBuilder builder) {
         int poolSize = getPoolSize(builder.isFixedPoolsize, builder.poolSize);
         List<SQSClient> clients = createClients(builder.isFixedPoolsize, poolSize, builder.asyncClient);
-        return new DefaultAwsSQSClientPool(poolSize, clients, builder.asyncClient);
+        return builder.isFixedPoolsize
+                ? new FixedAwsSQSClientPool(clients, builder.asyncClient)
+                : new FlexibleAwsSQSClientPool(poolSize, clients, builder.asyncClient);
     }
 
     private List<SQSClient> createClients(boolean isFixedPoolsize, int maxPoolSize, AmazonSQSBufferedAsyncClient asyncClient) {
@@ -40,6 +43,14 @@ public class AwsSQSClientTemplate<T> {
         return !isFixedPoolsize && Objects.isNull(maxPoolSize) ? DEFAULT_MAX_POOL_SIZE : maxPoolSize;
     }
 
+    private void validationAttribute(AwsSQSClientTemplateBuilder builder) {
+        Objects.requireNonNull(builder.asyncClient);
+        Objects.requireNonNull(builder.channel);
+        if (builder.isFixedPoolsize) {
+            Objects.requireNonNull(builder.poolSize);
+        }
+    }
+
     public void send(T message) {
         SQSClient sqsClient = null;
         try {
@@ -49,14 +60,6 @@ public class AwsSQSClientTemplate<T> {
             if (Objects.nonNull(sqsClient)) {
                 clientPool.release(sqsClient);
             }
-        }
-    }
-
-    private void validationAttribute(AwsSQSClientTemplateBuilder builder) {
-        Objects.requireNonNull(builder.asyncClient);
-        Objects.requireNonNull(builder.channel);
-        if (builder.isFixedPoolsize) {
-            Objects.requireNonNull(builder.poolSize);
         }
     }
 

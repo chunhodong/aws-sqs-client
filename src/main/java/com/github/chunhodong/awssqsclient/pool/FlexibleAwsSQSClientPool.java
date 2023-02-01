@@ -36,4 +36,11 @@ public class FlexibleAwsSQSClientPool extends DefaultAwsSQSClientPool {
             return null;
         }
     }
+
+    private final class PoolEntryCleaner implements Runnable {
+
+        @Override
+        public void run() {
+        }
+    }
 }

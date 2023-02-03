@@ -50,6 +50,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     public SQSClient getClient() {
         PoolEntry entry = getEntry();
         ProxyAwsSQSClient proxyAwsSQSClient = new ProxyAwsSQSClient(entry);
+        this.proxySQSClients.put(proxyAwsSQSClient, entry);
         return proxyAwsSQSClient;
     }
 
@@ -58,8 +59,8 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         clientRequestTime.set(LocalDateTime.now());
         do {
             for (int i = 0; i < entries.size(); i++) {
-                PoolEntry poolEntry = entries.get(i);
-                if (poolEntry.isClose()) continue;
+                PoolEntry poolEntry = getEntry(i);
+                if (poolEntry == null || poolEntry.isClose()) continue;
                 if (poolEntry.close()) {
                     clientRequestTime.remove();
                     return poolEntry;
@@ -74,9 +75,17 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         throw new ClientPoolRequestTimeoutException();
     }
 
+    public PoolEntry getEntry(int index) {
+        try {
+            return entries.get(index);
+        } catch (IndexOutOfBoundsException exception) {
+            return null;
+        }
+    }
+
     @Override
     public void release(SQSClient sqsClient) {
-        PoolEntry poolEntry = proxySQSClients.get(sqsClient);
+        PoolEntry poolEntry = proxySQSClients.remove(sqsClient);
         poolEntry.open();
     }
 
@@ -90,12 +99,21 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         entries.add(entry);
     }
 
-    protected int getPoolSize(){
+    protected int getPoolSize() {
         return entries.size();
     }
 
-
     private boolean isTimeout() {
         return !connectionTimeout.isAfter(clientRequestTime.get());
+    }
+
+    protected void removeIdleEntry() {
+        int entrySize = entries.size();
+        for (int i = 0; i < entrySize; i++) {
+            PoolEntry entry = entries.get(i);
+        /*    if (entry.isIdle(idleTimeout)) {
+                entries.remove(index);
+            }*/
+        }
     }
 }

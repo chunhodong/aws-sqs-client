@@ -1,6 +1,7 @@
 package com.github.chunhodong.awssqsclient.pool;
 
 import com.github.chunhodong.awssqsclient.client.SQSClient;
+import com.github.chunhodong.awssqsclient.utils.Timeout;
 
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ public class PoolEntry {
     private final SQSClient sqsClient;
     private PoolEntryState state = PoolEntryState.OPEN;
     private final Object mutex;
+    private long accessTime;
 
     public PoolEntry(SQSClient sqsClient) {
         Objects.nonNull(sqsClient);
@@ -33,6 +35,7 @@ public class PoolEntry {
 
     public void open() {
         state = PoolEntryState.OPEN;
+        accessTime = System.currentTimeMillis();
     }
 
 
@@ -40,10 +43,14 @@ public class PoolEntry {
         synchronized (mutex) {
             if (state == PoolEntryState.OPEN) {
                 state = PoolEntryState.CLOSE;
+                accessTime = System.currentTimeMillis();
                 return true;
             }
             return false;
         }
     }
 
+    public boolean isIdle(Timeout idleTimeout) {
+        return state == PoolEntryState.OPEN && System.currentTimeMillis() - accessTime > idleTimeout.toMilis();
+    }
 }

@@ -13,7 +13,7 @@ public class Timeout {
     private TimeUnit timeUnit = DEFAULT_TIME_UNIT;
     private Long timeValue;
 
-    private Timeout(TimeUnit timeUnit, Long timeValue) {
+    public Timeout(TimeUnit timeUnit, Long timeValue) {
         validateTime(timeUnit, timeValue);
         this.timeUnit = timeUnit;
         this.timeValue = timeValue;

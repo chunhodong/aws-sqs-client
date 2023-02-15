@@ -19,7 +19,6 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     private final AmazonSQSBufferedAsyncClient asyncClient;
     private final Timeout connectionTimeout;
     private final Timeout idleTimeout;
-    private final AtomicInteger atomicInteger = new AtomicInteger();
     private final Map<ProxyAwsSQSClient, PoolEntry> proxySQSClients;
 
     public DefaultAwsSQSClientPool(List<SQSClient> clients,
@@ -108,12 +107,11 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     }
 
     protected void removeIdleEntry() {
-        int entrySize = entries.size();
-        for (int i = 0; i < entrySize; i++) {
+        for (int i = 0; i < entries.size(); i++) {
             PoolEntry entry = entries.get(i);
-        /*    if (entry.isIdle(idleTimeout)) {
-                entries.remove(index);
-            }*/
+            if (entry.isIdle(idleTimeout)) {
+                entries.remove(i);
+            }
         }
     }
 }

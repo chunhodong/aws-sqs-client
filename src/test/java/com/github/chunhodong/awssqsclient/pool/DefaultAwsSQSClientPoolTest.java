@@ -1,8 +1,5 @@
 package com.github.chunhodong.awssqsclient.pool;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import org.junit.jupiter.api.DisplayName;
@@ -12,15 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 public class DefaultAwsSQSClientPoolTest {
 
     @Test
     @DisplayName("Pool 객체를 생성한다")
     void createClientTemplate() {
-        AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("accessKey", "secretKey")));
-        AmazonSQSBufferedAsyncClient asyncClient = new AmazonSQSBufferedAsyncClient(builder.build());
+        AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
+
         List<SQSClient> sqsClients = new ArrayList<>();
         new FixedAwsSQSClientPool(sqsClients, asyncClient);
     }
@@ -28,9 +25,8 @@ public class DefaultAwsSQSClientPoolTest {
     @Test
     @DisplayName("Pool에 추가될 entry가 null이면 생성실패")
     void throwsExceptionWhenEntryIsNull() {
-        AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("accessKey", "secretKey")));
-        AmazonSQSBufferedAsyncClient asyncClient = new AmazonSQSBufferedAsyncClient(builder.build());
+        AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
+
         assertThatThrownBy(() -> new FixedAwsSQSClientPool(null, asyncClient))
                 .isInstanceOf(NullPointerException.class);
     }

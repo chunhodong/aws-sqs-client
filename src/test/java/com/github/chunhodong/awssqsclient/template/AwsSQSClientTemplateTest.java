@@ -13,7 +13,6 @@ public class AwsSQSClientTemplateTest {
 
 
     @Test
-    @Disabled
     @DisplayName("템플릿 객체를 생성한다")
     void createClientTemplate() {
         AwsSQSClientTemplate awsSQSClientTemplate = AwsSQSClientTemplate.builder()

@@ -1,7 +1,6 @@
 package com.github.chunhodong.awssqsclient.template;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

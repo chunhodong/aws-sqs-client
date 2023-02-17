@@ -40,7 +40,7 @@ public class PoolEntryTest {
         poolEntry.open();
         Thread.sleep(1000);
 
-        assertThat(poolEntry.isIdle(new Timeout(TimeUnit.NANOSECONDS,100l))).isTrue();
+        assertThat(poolEntry.isIdle(new Timeout(TimeUnit.NANOSECONDS, 100l))).isTrue();
 
     }
 

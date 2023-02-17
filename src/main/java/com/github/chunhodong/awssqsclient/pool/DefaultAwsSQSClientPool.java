@@ -27,7 +27,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
                                    Timeout idleTimeout) {
         validateClientPool(clients, asyncClient);
         List<PoolEntry> entries = clients.stream().map(PoolEntry::new).collect(Collectors.toList());
-        this.entries = Collections.synchronizedList(entries);
+        this.entries = entries;
         this.asyncClient = asyncClient;
         this.clientRequestTime = new ThreadLocal();
         this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout, Timeout.defaultConnectionTime());

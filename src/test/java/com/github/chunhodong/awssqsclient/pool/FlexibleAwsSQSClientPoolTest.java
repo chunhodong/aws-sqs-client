@@ -5,39 +5,25 @@ import com.github.chunhodong.awssqsclient.client.SQSClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class FlexibleAwsSQSClientPoolTest {
 
     @Test
-    @DisplayName("Pool 객체를 생성한다")
-    void createClientTemplate() {
+    @DisplayName("Pool에있는 entry객체수를 조회")
+    void returnFlxiblePoolSize() {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
+        List<SQSClient> sqsClients = Arrays.asList((channel, message) -> {
+        }, (channel, message) -> {
+        });
 
-        List<SQSClient> sqsClients = new ArrayList<>();
-        new FixedAwsSQSClientPool(sqsClients, asyncClient);
-    }
+        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(10, sqsClients, asyncClient);
 
-    @Test
-    @DisplayName("Pool에 추가될 entry가 null이면 생성실패")
-    void throwsExceptionWhenEntryIsNull() {
-        AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
-
-        assertThatThrownBy(() -> new FixedAwsSQSClientPool(null, asyncClient))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("Pool에 추가될 async객체가 null이면 생성실패")
-    void throwsExceptionWhenAsyncClientIsNull() {
-        List<SQSClient> sqsClients = new ArrayList<>();
-
-        assertThatThrownBy(() -> new FixedAwsSQSClientPool(sqsClients, null))
-                .isInstanceOf(NullPointerException.class);
+        assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(2);
     }
 
 }

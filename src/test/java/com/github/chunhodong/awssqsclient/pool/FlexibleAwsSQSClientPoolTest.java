@@ -11,7 +11,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-public class DefaultAwsSQSClientPoolTest {
+public class FlexibleAwsSQSClientPoolTest {
 
     @Test
     @DisplayName("Pool 객체를 생성한다")

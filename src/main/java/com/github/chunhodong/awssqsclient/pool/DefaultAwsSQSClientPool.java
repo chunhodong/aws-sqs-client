@@ -9,11 +9,11 @@ import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
 
+    protected final Object lock = new Object();
     private final List<PoolEntry> entries;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
     private final AmazonSQSBufferedAsyncClient asyncClient;
@@ -57,12 +57,11 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     public PoolEntry getEntry() {
         clientRequestTime.set(LocalDateTime.now());
         do {
-            for (int i = 0; i < entries.size(); i++) {
-                PoolEntry poolEntry = getEntry(i);
-                if (poolEntry == null || poolEntry.isClose()) continue;
-                if (poolEntry.close()) {
+            for (PoolEntry entry : entries) {
+                if (entry.isClose()) continue;
+                if (entry.close()) {
                     clientRequestTime.remove();
-                    return poolEntry;
+                    return entry;
                 }
             }
             PoolEntry poolEntry = createEntry();
@@ -72,14 +71,6 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         } while (isTimeout());
         clientRequestTime.remove();
         throw new ClientPoolRequestTimeoutException();
-    }
-
-    public PoolEntry getEntry(int index) {
-        try {
-            return entries.get(index);
-        } catch (IndexOutOfBoundsException exception) {
-            return null;
-        }
     }
 
     @Override
@@ -107,10 +98,11 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     }
 
     protected void removeIdleEntry() {
-        for (int i = 0; i < entries.size(); i++) {
-            PoolEntry entry = entries.get(i);
+        for(PoolEntry entry: entries){
             if (entry.isIdle(idleTimeout)) {
-                entries.remove(i);
+                synchronized (lock){
+                    entries.remove(entry);
+                }
             }
         }
     }

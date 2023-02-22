@@ -38,7 +38,9 @@ public class FlexibleAwsSQSClientPoolTest {
     @DisplayName("Pool에있는 entry를 추가하면 poolSize에 반영")
     void returnPoolSizeWhenAddEntry() {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
-        List<SQSClient> sqsClients = Arrays.asList((channel, message) -> { }, (channel, message) -> { });
+        List<SQSClient> sqsClients = Arrays.asList((channel, message) -> {
+        }, (channel, message) -> {
+        });
 
         FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(10, sqsClients, asyncClient);
         flexibleAwsSQSClientPool.createEntry();
@@ -49,13 +51,14 @@ public class FlexibleAwsSQSClientPoolTest {
     @DisplayName("멀티스레드상황에서 entry를 추가하면 maxPoolSize개수까지만 생성")
     void returnPoolSizeAtMaxPoolSize() throws InterruptedException {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
-        List<SQSClient> sqsClients = Arrays.asList((channel, message) -> { });
+        List<SQSClient> sqsClients = Arrays.asList((channel, message) -> {
+        });
         FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(100, sqsClients, asyncClient);
         int totalNumberOfTasks = 150;
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
-        for(int i = 0; i < totalNumberOfTasks; i++){
+        for (int i = 0; i < totalNumberOfTasks; i++) {
             executor.submit(() -> {
                 flexibleAwsSQSClientPool.createEntry();
                 latch.countDown();
@@ -70,19 +73,23 @@ public class FlexibleAwsSQSClientPoolTest {
     @DisplayName("멀티스레드상황에서 삭제횟수와 생성횟수가 같으면 pool개수는 0")
     void returnZeroPoolSize() throws InterruptedException {
         Timeout connectionTime = Timeout.defaultConnectionTime();
-        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS,10l);
+        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS, 10l);
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
         List<SQSClient> sqsClients = new ArrayList<>();
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200,connectionTime,idleTimeout,sqsClients, asyncClient);
+        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200, connectionTime, idleTimeout, sqsClients, asyncClient);
         int totalNumberOfTasks = 100;
 
 
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
-        for(int i = 0; i < totalNumberOfTasks; i++){
+        for (int i = 0; i < totalNumberOfTasks; i++) {
+            flexibleAwsSQSClientPool.addEntry(new PoolEntry(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)), PoolEntryState.OPEN));
+        }
+
+        for (int i = 0; i < totalNumberOfTasks; i++) {
             executor.submit(() -> {
-                flexibleAwsSQSClientPool.createEntry();
+                flexibleAwsSQSClientPool.removeIdleEntry();
                 latch.countDown();
             });
         }

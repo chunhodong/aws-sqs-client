@@ -18,7 +18,7 @@ public class PoolEntry {
         this.mutex = this;
     }
 
-    public PoolEntry(SQSClient sqsClient,PoolEntryState state) {
+    public PoolEntry(SQSClient sqsClient, PoolEntryState state) {
         Objects.nonNull(sqsClient);
         this.sqsClient = sqsClient;
         this.state = state;
@@ -37,7 +37,6 @@ public class PoolEntry {
         state = PoolEntryState.OPEN;
         accessTime = System.currentTimeMillis();
     }
-
 
     public boolean close() {
         synchronized (mutex) {

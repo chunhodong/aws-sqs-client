@@ -104,6 +104,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
                     entries.remove(entry);
                 }
             }
+
         }
     }
 }

@@ -50,6 +50,13 @@ public class PoolEntry {
     }
 
     public boolean isIdle(Timeout idleTimeout) {
+        System.out.println("true1="+(state == PoolEntryState.OPEN));
+        System.out.println("true2="+(System.currentTimeMillis() - accessTime > idleTimeout.toMilis()));
+        System.out.println("true2.1="+(System.currentTimeMillis()));
+        System.out.println("true2.2="+(accessTime));
+        System.out.println("true2.3="+(idleTimeout.toMilis()));
+
+        System.out.println("============================================");
         return state == PoolEntryState.OPEN && System.currentTimeMillis() - accessTime > idleTimeout.toMilis();
     }
 }

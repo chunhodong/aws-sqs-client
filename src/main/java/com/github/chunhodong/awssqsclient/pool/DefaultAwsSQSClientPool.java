@@ -64,7 +64,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
                     return entry;
                 }
             }
-            PoolEntry poolEntry = createEntry();
+            PoolEntry poolEntry = publishEntry();
             if (Objects.nonNull(poolEntry)) {
                 return poolEntry;
             }
@@ -79,7 +79,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         poolEntry.open();
     }
 
-    protected abstract PoolEntry createEntry();
+    protected abstract PoolEntry publishEntry();
 
     protected PoolEntry newEntry(PoolEntryState state) {
         return new PoolEntry(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)), state);
@@ -98,13 +98,46 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     }
 
     protected void removeIdleEntry() {
-        for(PoolEntry entry: entries){
+        List<PoolEntry> pp = entries.stream().filter(poolEntry -> poolEntry.isIdle(idleTimeout))
+                .collect(Collectors.toList());
+
+        System.out.println("end");
+        try {
+            synchronized (lock) {
+                try {
+                    entries.removeAll(pp);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                finally {
+                    return;
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            return;
+        }
+
+
+       /* for (PoolEntry entry : entries) {
+            System.out.println("ex="+entry);
             if (entry.isIdle(idleTimeout)) {
-                synchronized (lock){
-                    entries.remove(entry);
+                System.out.println("remove!!");
+                synchronized (lock) {
+                    try {
+                        entries.remove(entry);
+
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
 
-        }
+        }*/
     }
 }

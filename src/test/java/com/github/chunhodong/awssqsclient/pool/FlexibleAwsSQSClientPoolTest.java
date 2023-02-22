@@ -41,7 +41,7 @@ public class FlexibleAwsSQSClientPoolTest {
         List<SQSClient> sqsClients = Arrays.asList((channel, message) -> { }, (channel, message) -> { });
 
         FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(10, sqsClients, asyncClient);
-        flexibleAwsSQSClientPool.createEntry();
+        flexibleAwsSQSClientPool.publishEntry();
         assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(3);
     }
 
@@ -57,7 +57,7 @@ public class FlexibleAwsSQSClientPoolTest {
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
         for(int i = 0; i < totalNumberOfTasks; i++){
             executor.submit(() -> {
-                flexibleAwsSQSClientPool.createEntry();
+                flexibleAwsSQSClientPool.publishEntry();
                 latch.countDown();
             });
         }
@@ -78,17 +78,43 @@ public class FlexibleAwsSQSClientPoolTest {
 
 
         ExecutorService executor = Executors.newFixedThreadPool(200);
-
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
         for(int i = 0; i < totalNumberOfTasks; i++){
             executor.submit(() -> {
-                flexibleAwsSQSClientPool.createEntry();
+                PoolEntry poolEntry = flexibleAwsSQSClientPool.publishEntry();
+                poolEntry.open();
+                //flexibleAwsSQSClientPool.removeIdleEntry();
+
                 latch.countDown();
             });
         }
-        latch.await();
 
-        assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(100);
+
+        latch.await();
+        Thread tx = new Thread(() -> {
+            flexibleAwsSQSClientPool.removeIdleEntry();
+            System.out.println("min");
+        });
+        tx.start();
+
+        tx.join();
+
+
+      /*  ExecutorService executor2 = Executors.newFixedThreadPool(200);
+
+        CountDownLatch latch2 = new CountDownLatch(1);
+        for(int i = 0; i < 1; i++){
+            executor2.submit(() -> {
+                flexibleAwsSQSClientPool.removeIdleEntry();
+
+                latch2.countDown();
+            });
+        }
+
+
+        latch2.await();*/
+        System.out.println("poolSize="+flexibleAwsSQSClientPool.getPoolSize());
+        assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(0);
     }
 
 }

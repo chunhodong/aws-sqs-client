@@ -7,7 +7,7 @@ plugins {
 
 
 group = 'com.github.chunhodong'
-version = '0.0.4'
+version = '0.0.5'
 sourceCompatibility = 11
 targetCompatibility = 11
 
@@ -17,10 +17,8 @@ repositories {
 
 publishing {
 	publications {
-		mavenJava(MavenPublication) {
-			mavenJava(MavenPublication) {
-				from components.java
-			}
+		maven(MavenPublication) {
+			from components.java
 		}
 	}
 }

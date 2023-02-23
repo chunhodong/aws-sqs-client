@@ -15,9 +15,8 @@ public class PoolElementTest {
     void returnUseState() {
         PoolElement poolElement = new PoolElement((channel, message) -> {
         });
-        poolElement.close();
 
-        assertThat(poolElement.isClose()).isTrue();
+        assertThat(poolElement.close()).isTrue();
 
     }
 
@@ -28,7 +27,7 @@ public class PoolElementTest {
         });
         poolElement.open();
 
-        assertThat(poolElement.isClose()).isFalse();
+        assertThat(poolElement.close()).isFalse();
     }
 
     @Test

@@ -11,7 +11,6 @@ public class PoolElement {
     private static final AtomicIntegerFieldUpdater<PoolElement> stateUpdater;
     private final SQSClient sqsClient;
     private int state;
-    private final Object mutex;
     private long accessTime;
 
     static {
@@ -22,15 +21,10 @@ public class PoolElement {
         Objects.nonNull(sqsClient);
         this.sqsClient = sqsClient;
         this.state = ElementState.CLOSE;
-        this.mutex = this;
     }
 
     public SQSClient getSqsClient() {
         return sqsClient;
-    }
-
-    public boolean isClose() {
-        return state == ElementState.CLOSE;
     }
 
     public void open() {

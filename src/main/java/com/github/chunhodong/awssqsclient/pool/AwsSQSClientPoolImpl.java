@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
+public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
     protected final Object lock = new Object();
     private final List<PoolElement> entries;
@@ -21,10 +21,10 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     private final Timeout idleTimeout;
     private final Map<ProxyAwsSQSClient, PoolElement> proxySQSClients;
 
-    public DefaultAwsSQSClientPool(List<SQSClient> clients,
-                                   AmazonSQSBufferedAsyncClient asyncClient,
-                                   Timeout connectionTimeout,
-                                   Timeout idleTimeout) {
+    public AwsSQSClientPoolImpl(List<SQSClient> clients,
+                                AmazonSQSBufferedAsyncClient asyncClient,
+                                Timeout connectionTimeout,
+                                Timeout idleTimeout) {
         validateClientPool(clients, asyncClient);
         this.entries = clients.stream().map(PoolElement::new).collect(Collectors.toList());
         this.asyncClient = asyncClient;
@@ -34,8 +34,8 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         this.proxySQSClients = Collections.synchronizedMap(new HashMap<>());
     }
 
-    public DefaultAwsSQSClientPool(List<SQSClient> clients,
-                                   AmazonSQSBufferedAsyncClient asyncClient) {
+    public AwsSQSClientPoolImpl(List<SQSClient> clients,
+                                AmazonSQSBufferedAsyncClient asyncClient) {
         this(clients, asyncClient, Timeout.defaultConnectionTime(), Timeout.defaultIdleTime());
     }
 
@@ -77,7 +77,9 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         poolElement.open();
     }
 
-    protected abstract PoolElement publishEntry();
+    protected PoolElement publishEntry() {
+        return null;
+    }
 
     protected PoolElement newEntry() {
         return new PoolElement(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)));

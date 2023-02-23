@@ -7,15 +7,15 @@ import com.github.chunhodong.awssqsclient.utils.Timeout;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FixedAwsSQSClientPool extends DefaultAwsSQSClientPool {
+public class FixedAwsSQSClientPoolImpl extends AwsSQSClientPoolImpl {
 
     private ReentrantLock entryLock;
 
-    public FixedAwsSQSClientPool(List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
+    public FixedAwsSQSClientPoolImpl(List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
         super(clients, asyncClient);
     }
 
-    public FixedAwsSQSClientPool(Timeout connectionTimeout, Timeout idleTimeout, List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
+    public FixedAwsSQSClientPoolImpl(Timeout connectionTimeout, Timeout idleTimeout, List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
         super(clients, asyncClient, connectionTimeout, idleTimeout);
     }
 

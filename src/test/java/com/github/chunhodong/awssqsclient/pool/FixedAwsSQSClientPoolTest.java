@@ -19,7 +19,7 @@ public class FixedAwsSQSClientPoolTest {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
 
         List<SQSClient> sqsClients = new ArrayList<>();
-        new FixedAwsSQSClientPool(sqsClients, asyncClient);
+        new FixedAwsSQSClientPoolImpl(sqsClients, asyncClient);
     }
 
     @Test
@@ -27,7 +27,7 @@ public class FixedAwsSQSClientPoolTest {
     void throwsExceptionWhenEntryIsNull() {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
 
-        assertThatThrownBy(() -> new FixedAwsSQSClientPool(null, asyncClient))
+        assertThatThrownBy(() -> new FixedAwsSQSClientPoolImpl(null, asyncClient))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -36,7 +36,7 @@ public class FixedAwsSQSClientPoolTest {
     void throwsExceptionWhenAsyncClientIsNull() {
         List<SQSClient> sqsClients = new ArrayList<>();
 
-        assertThatThrownBy(() -> new FixedAwsSQSClientPool(sqsClients, null))
+        assertThatThrownBy(() -> new FixedAwsSQSClientPoolImpl(sqsClients, null))
                 .isInstanceOf(NullPointerException.class);
     }
 

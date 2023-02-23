@@ -13,8 +13,7 @@ public class PoolElementTest {
     @Test
     @DisplayName("엔트리의 상태를 사용중으로 수정한다")
     void returnUseState() {
-        PoolElement poolElement = new PoolElement((channel, message) -> {
-        });
+        PoolElement poolElement = new PoolElement((channel, message) -> {});
 
         assertThat(poolElement.close()).isTrue();
 
@@ -23,10 +22,8 @@ public class PoolElementTest {
     @Test
     @DisplayName("엔트리의 상태를 비사용중으로 수정한다")
     void returnUnuseState() {
-        PoolElement poolElement = new PoolElement((channel, message) -> {
-        });
-        poolElement.open();
-
+        PoolElement poolElement = new PoolElement((channel, message) -> {});
+        poolElement.close();
         assertThat(poolElement.close()).isFalse();
     }
 

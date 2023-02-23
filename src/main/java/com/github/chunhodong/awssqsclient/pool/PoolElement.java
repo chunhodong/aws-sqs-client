@@ -10,7 +10,7 @@ public class PoolElement {
 
     private static final AtomicIntegerFieldUpdater<PoolElement> stateUpdater;
     private final SQSClient sqsClient;
-    private int state;
+    private volatile int state;
     private long accessTime;
 
     static {
@@ -20,7 +20,7 @@ public class PoolElement {
     public PoolElement(SQSClient sqsClient) {
         Objects.nonNull(sqsClient);
         this.sqsClient = sqsClient;
-        this.state = ElementState.CLOSE;
+        this.state = ElementState.OPEN;
     }
 
     public SQSClient getSqsClient() {

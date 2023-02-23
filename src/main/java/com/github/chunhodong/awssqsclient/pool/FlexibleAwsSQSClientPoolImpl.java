@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class FlexibleAwsSQSClientPool extends DefaultAwsSQSClientPool {
+public class FlexibleAwsSQSClientPoolImpl extends AwsSQSClientPoolImpl {
 
     private final int maxPoolsize;
     private final ScheduledExecutorService idlePoolCleaner;
@@ -18,14 +18,14 @@ public class FlexibleAwsSQSClientPool extends DefaultAwsSQSClientPool {
     private static final int DEFAULT_INITAIL_DELAY_CLEANER = 1000;
     private static final int DEFAULT_DELAY_CLEANER = 30000;
 
-    public FlexibleAwsSQSClientPool(int maxPoolSize, List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
+    public FlexibleAwsSQSClientPoolImpl(int maxPoolSize, List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
         super(clients, asyncClient);
         this.maxPoolsize = maxPoolSize;
         idlePoolCleaner = createPoolCleaner();
         idlePoolCleaner.scheduleWithFixedDelay(new PoolEntryCleaner(), DEFAULT_INITAIL_DELAY_CLEANER, DEFAULT_DELAY_CLEANER, MILLISECONDS);
     }
 
-    public FlexibleAwsSQSClientPool(int maxPoolSize, Timeout connectionTimeout, Timeout idleTimeout, List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
+    public FlexibleAwsSQSClientPoolImpl(int maxPoolSize, Timeout connectionTimeout, Timeout idleTimeout, List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
         super(clients, asyncClient, connectionTimeout, idleTimeout);
         this.maxPoolsize = maxPoolSize;
         idlePoolCleaner = createPoolCleaner();
@@ -41,6 +41,7 @@ public class FlexibleAwsSQSClientPool extends DefaultAwsSQSClientPool {
         synchronized (lock) {
             if (getPoolSize() < maxPoolsize) {
                 PoolElement entry = newEntry();
+                entry.close();
                 addEntry(entry);
                 return entry;
             }

@@ -27,7 +27,7 @@ public class FlexibleAwsSQSClientPoolTest {
         }, (channel, message) -> {
         });
 
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(10, sqsClients, asyncClient);
+        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(10, sqsClients, asyncClient);
 
         assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(2);
     }
@@ -40,7 +40,7 @@ public class FlexibleAwsSQSClientPoolTest {
         }, (channel, message) -> {
         });
 
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(10, sqsClients, asyncClient);
+        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(10, sqsClients, asyncClient);
         flexibleAwsSQSClientPool.publishEntry();
         assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(3);
     }
@@ -51,7 +51,7 @@ public class FlexibleAwsSQSClientPoolTest {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
         List<SQSClient> sqsClients = Arrays.asList((channel, message) -> {
         });
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(100, sqsClients, asyncClient);
+        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(100, sqsClients, asyncClient);
         int totalNumberOfTasks = 150;
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
@@ -74,7 +74,7 @@ public class FlexibleAwsSQSClientPoolTest {
         Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS,10l);
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
         List<SQSClient> sqsClients = new ArrayList<>();
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200,connectionTime,idleTimeout,sqsClients, asyncClient);
+        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(200,connectionTime,idleTimeout,sqsClients, asyncClient);
         int totalNumberOfTasks = 100;
 
 

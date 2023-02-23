@@ -1,12 +1,14 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '2.7.8'
+	id 'org.springframework.boot' version '2.7.3'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id 'maven-publish'
 }
 
 group = 'com.github.chunhodong'
-version = '0.0.3'
-sourceCompatibility = '11'
+version = '0.0.4'
+sourceCompatibility = 11
+targetCompatibility = 11
 
 repositories {
 	mavenCentral()
@@ -20,7 +22,16 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.12'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-jar {
-	enabled = false
-	archiveClassifier.set("")
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+		}
+	}
+}
+
+wrapper {
+	gradleVersion = "7.5"
+	distributionType = Wrapper.DistributionType.ALL
 }

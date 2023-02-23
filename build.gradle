@@ -20,7 +20,9 @@ jar {
 }
 
 tasks.named("bootJar") {
-	mainClass = 'com.github.chunhodong.awssqsclient.AwsSqsClientApplication'
+	archivesBaseName = '원하는이름1'
+	archiveFileName = '원하는이름2.jar'
+	archiveVersion = "0.0.0"
 }
 
 dependencies {

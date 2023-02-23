@@ -4,6 +4,6 @@ import com.github.chunhodong.awssqsclient.client.SQSClient;
 
 public interface AwsSQSClientPool {
     SQSClient getClient();
-    PoolElement getEntry();
+    PoolElement getElement();
     void release(SQSClient sqsClient);
 }

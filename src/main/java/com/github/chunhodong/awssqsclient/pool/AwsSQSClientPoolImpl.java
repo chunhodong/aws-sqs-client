@@ -17,7 +17,6 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     protected final Object lock = new Object();
     private final List<PoolElement> elements;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
-    private final AmazonSQSBufferedAsyncClient asyncClient;
     private final PoolConfiguration poolConfig;
     private final Map<ProxyAwsSQSClient, PoolElement> proxySQSClients;
 
@@ -25,9 +24,9 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
                                 AmazonSQSBufferedAsyncClient asyncClient) {
         this.poolConfig = poolConfig;
         this.elements = createElements(poolConfig, asyncClient);
-        this.asyncClient = asyncClient;
         this.clientRequestTime = new ThreadLocal<>();
         this.proxySQSClients = Collections.synchronizedMap(new HashMap<>());
+
     }
 
     private List<PoolElement> createElements(PoolConfiguration poolConfig, AmazonSQSBufferedAsyncClient asyncClient) {
@@ -39,14 +38,14 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
     @Override
     public SQSClient getClient() {
-        PoolElement entry = getEntry();
+        PoolElement entry = getElement();
         ProxyAwsSQSClient proxyAwsSQSClient = new ProxyAwsSQSClient(entry);
         this.proxySQSClients.put(proxyAwsSQSClient, entry);
         return proxyAwsSQSClient;
     }
 
     @Override
-    public PoolElement getEntry() {
+    public PoolElement getElement() {
         clientRequestTime.set(LocalDateTime.now());
         do {
             for (PoolElement element : elements) {

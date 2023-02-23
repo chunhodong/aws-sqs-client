@@ -98,11 +98,12 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     }
 
     protected void removeIdleEntry() {
-        List<PoolEntry> idleEntrys = entries.stream().filter(poolEntry -> poolEntry.isIdle(idleTimeout))
+        List<PoolEntry> idleEntrys = entries
+                .stream()
+                .filter(poolEntry -> poolEntry.isIdle(idleTimeout))
                 .collect(Collectors.toList());
         synchronized (lock) {
             entries.removeAll(idleEntrys);
         }
-
     }
 }

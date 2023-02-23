@@ -22,4 +22,5 @@ dependencies {
 }
 jar {
 	enabled = false
+	archiveClassifier.set("")
 }

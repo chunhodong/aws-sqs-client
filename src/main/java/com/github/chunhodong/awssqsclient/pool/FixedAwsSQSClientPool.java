@@ -20,7 +20,7 @@ public class FixedAwsSQSClientPool extends DefaultAwsSQSClientPool {
     }
 
     @Override
-    protected PoolEntry createEntry() {
+    protected PoolEntry publishEntry() {
         return null;
     }
 }

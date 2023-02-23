@@ -43,7 +43,7 @@ public class FlexibleAwsSQSClientPoolTest {
         });
 
         FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(10, sqsClients, asyncClient);
-        flexibleAwsSQSClientPool.createEntry();
+        flexibleAwsSQSClientPool.publishEntry();
         assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(3);
     }
 
@@ -60,7 +60,7 @@ public class FlexibleAwsSQSClientPoolTest {
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
         for (int i = 0; i < totalNumberOfTasks; i++) {
             executor.submit(() -> {
-                flexibleAwsSQSClientPool.createEntry();
+                flexibleAwsSQSClientPool.publishEntry();
                 latch.countDown();
             });
         }

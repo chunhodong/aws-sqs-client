@@ -37,7 +37,7 @@ public class FlexibleAwsSQSClientPool extends DefaultAwsSQSClientPool {
     }
 
     @Override
-    protected PoolEntry createEntry() {
+    protected PoolEntry publishEntry() {
         synchronized (lock) {
             if (getPoolSize() < maxPoolsize) {
                 PoolEntry entry = newEntry(PoolEntryState.CLOSE);

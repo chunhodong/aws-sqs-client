@@ -64,7 +64,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
                     return entry;
                 }
             }
-            PoolEntry poolEntry = createEntry();
+            PoolEntry poolEntry = publishEntry();
             if (Objects.nonNull(poolEntry)) {
                 return poolEntry;
             }
@@ -79,7 +79,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
         poolEntry.open();
     }
 
-    protected abstract PoolEntry createEntry();
+    protected abstract PoolEntry publishEntry();
 
     protected PoolEntry newEntry(PoolEntryState state) {
         return new PoolEntry(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)), state);

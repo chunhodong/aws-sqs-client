@@ -6,28 +6,37 @@ import java.util.Objects;
 
 public class PoolConfiguration {
     private static final long DEFAULT_IDLE_TIMEOUT = 0;
+    private static final long MIN_IDLE_TIMEOUT = 10000;
     private static final long DEFAULT_CONNECTION_TIMEOUT = 30000;
     private static final int DEFAULT_POOL_SIZE = 10;
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     private int poolSize = DEFAULT_POOL_SIZE;
 
-    public PoolConfiguration(){
+    public PoolConfiguration() {
 
     }
 
-    public int getPoolSize(){
+    public int getPoolSize() {
         return poolSize;
     }
 
-    public long getIdleTimeout(){
+    public long getIdleTimeout() {
         return idleTimeout;
     }
 
+    public boolean isDefaultIdleTimeout(){
+        return idleTimeout == DEFAULT_IDLE_TIMEOUT;
+    }
+
     private PoolConfiguration(PoolConfigurationBuilder builder) {
-        this.idleTimeout = builder.idleTimeout;
+        this.idleTimeout = arrageIdleTimeout(builder.idleTimeout);
         this.connectionTimeout = builder.connectionTimeout;
         this.poolSize = builder.poolSize;
+    }
+
+    private long arrageIdleTimeout(long idleTimeout) {
+        return idleTimeout < MIN_IDLE_TIMEOUT ? DEFAULT_IDLE_TIMEOUT : idleTimeout;
     }
 
     public static PoolConfigurationBuilder builder() {
@@ -53,7 +62,7 @@ public class PoolConfiguration {
             return this;
         }
 
-        public PoolConfigurationBuilder poolSize(int poolSize){
+        public PoolConfigurationBuilder poolSize(int poolSize) {
             this.poolSize = poolSize;
             return this;
         }

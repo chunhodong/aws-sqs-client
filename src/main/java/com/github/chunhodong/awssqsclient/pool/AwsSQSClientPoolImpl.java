@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
@@ -19,6 +20,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     private final ThreadLocal<LocalDateTime> clientRequestTime;
     private final PoolConfiguration poolConfig;
     private final Map<ProxyAwsSQSClient, PoolElement> proxySQSClients;
+    private PoolCleaner poolCleaner;
 
     public AwsSQSClientPoolImpl(PoolConfiguration poolConfig,
                                 AmazonSQSBufferedAsyncClient asyncClient) {
@@ -26,7 +28,15 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         this.elements = createElements(poolConfig, asyncClient);
         this.clientRequestTime = new ThreadLocal<>();
         this.proxySQSClients = Collections.synchronizedMap(new HashMap<>());
+        runPoolCleaner();
 
+    }
+
+    private void runPoolCleaner() {
+        if(poolConfig.isDefaultIdleTimeout()){
+            return;
+        }
+        poolCleaner = new PoolCleaner().run();
     }
 
     private List<PoolElement> createElements(PoolConfiguration poolConfig, AmazonSQSBufferedAsyncClient asyncClient) {
@@ -80,6 +90,21 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
                 .collect(Collectors.toList());
         synchronized (lock) {
             elements.removeAll(idleEntrys);
+        }
+    }
+
+    private class PoolCleaner extends ScheduledThreadPoolExecutor {
+        private final static int DEFAULT_POOL_SIZE = 1;
+
+        public PoolCleaner(){
+            this(1);
+        }
+        public PoolCleaner(int corePoolSize) {
+            super(corePoolSize);
+        }
+
+        public PoolCleaner run(){
+            return this;
         }
     }
 }

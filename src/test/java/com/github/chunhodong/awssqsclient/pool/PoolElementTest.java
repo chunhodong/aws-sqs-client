@@ -36,7 +36,7 @@ public class PoolElementTest {
         poolElement.open();
         Thread.sleep(1000);
 
-        assertThat(poolElement.isIdle(new Timeout(TimeUnit.NANOSECONDS, 100l))).isTrue();
+        assertThat(poolElement.isIdle(10)).isTrue();
 
     }
 

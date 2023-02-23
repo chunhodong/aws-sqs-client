@@ -14,34 +14,26 @@ import java.util.stream.Collectors;
 public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
     protected final Object lock = new Object();
-    private final List<PoolElement> entries;
+    private final List<PoolElement> elements;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
     private final AmazonSQSBufferedAsyncClient asyncClient;
-    private final Timeout connectionTimeout;
-    private final Timeout idleTimeout;
+    private final PoolConfiguration poolConfig;
     private final Map<ProxyAwsSQSClient, PoolElement> proxySQSClients;
 
-    public AwsSQSClientPoolImpl(List<SQSClient> clients,
-                                AmazonSQSBufferedAsyncClient asyncClient,
-                                Timeout connectionTimeout,
-                                Timeout idleTimeout) {
-        validateClientPool(clients, asyncClient);
-        this.entries = clients.stream().map(PoolElement::new).collect(Collectors.toList());
+    public AwsSQSClientPoolImpl(PoolConfiguration poolConfig,
+                                AmazonSQSBufferedAsyncClient asyncClient) {
+        this.poolConfig = poolConfig;
+        this.elements = createElements(poolConfig,asyncClient);
         this.asyncClient = asyncClient;
         this.clientRequestTime = new ThreadLocal<>();
-        this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout, Timeout.defaultConnectionTime());
-        this.idleTimeout = Objects.requireNonNullElse(idleTimeout, Timeout.defaultIdleTime());
         this.proxySQSClients = Collections.synchronizedMap(new HashMap<>());
     }
 
-    public AwsSQSClientPoolImpl(List<SQSClient> clients,
-                                AmazonSQSBufferedAsyncClient asyncClient) {
-        this(clients, asyncClient, Timeout.defaultConnectionTime(), Timeout.defaultIdleTime());
-    }
-
-    private void validateClientPool(List<SQSClient> clients, AmazonSQSBufferedAsyncClient asyncClient) {
-        Objects.requireNonNull(clients);
-        Objects.requireNonNull(asyncClient);
+    private List<PoolElement> createElements(PoolConfiguration poolConfig, AmazonSQSBufferedAsyncClient asyncClient) {
+        return Collections.nCopies(poolConfig.getPoolSize(), AwsSQSClient.createClient(asyncClient))
+                .stream()
+                .map(PoolElement::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -56,10 +48,10 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     public PoolElement getEntry() {
         clientRequestTime.set(LocalDateTime.now());
         do {
-            for (PoolElement entry : entries) {
-                if (entry.close()) {
+            for (PoolElement element : elements) {
+                if (element.close()) {
                     clientRequestTime.remove();
-                    return entry;
+                    return element;
                 }
             }
             PoolElement poolElement = publishEntry();
@@ -86,24 +78,24 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     }
 
     protected void addEntry(PoolElement entry) {
-        entries.add(entry);
+        elements.add(entry);
     }
 
     protected int getPoolSize() {
-        return entries.size();
+        return elements.size();
     }
 
     private boolean isTimeout() {
-        return !connectionTimeout.isAfter(clientRequestTime.get());
+        return !poolConfig.isConnectionTimeout(clientRequestTime.get());
     }
 
     protected void removeIdleEntry() {
-        List<PoolElement> idleEntrys = entries
+        List<PoolElement> idleEntrys = elements
                 .stream()
-                .filter(poolEntry -> poolEntry.isIdle(idleTimeout))
+                .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
                 .collect(Collectors.toList());
         synchronized (lock) {
-            entries.removeAll(idleEntrys);
+            elements.removeAll(idleEntrys);
         }
     }
 }

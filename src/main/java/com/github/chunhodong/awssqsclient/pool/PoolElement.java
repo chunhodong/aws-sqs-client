@@ -1,7 +1,6 @@
 package com.github.chunhodong.awssqsclient.pool;
 
 import com.github.chunhodong.awssqsclient.client.SQSClient;
-import com.github.chunhodong.awssqsclient.utils.Timeout;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -33,14 +32,14 @@ public class PoolElement {
     }
 
     public boolean close() {
-        return stateUpdater.compareAndSet(this,ElementState.OPEN,ElementState.CLOSE);
+        return stateUpdater.compareAndSet(this, ElementState.OPEN, ElementState.CLOSE);
     }
 
-    public boolean isIdle(Timeout idleTimeout) {
-        return state == ElementState.OPEN && System.currentTimeMillis() - accessTime > idleTimeout.toMilis();
+    public boolean isIdle(long idleTimeout) {
+        return state == ElementState.OPEN && System.currentTimeMillis() - accessTime > idleTimeout;
     }
 
-    private static class ElementState{
+    private static class ElementState {
         public static int OPEN = 1;
         public static int CLOSE = 0;
     }

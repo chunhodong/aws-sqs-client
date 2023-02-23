@@ -2,22 +2,19 @@ package com.github.chunhodong.awssqsclient.pool;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
-import com.github.chunhodong.awssqsclient.utils.Timeout;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class FlexibleAwsSQSClientPoolTest {
+public class AwsSQSClientPoolImplTest {
 
     @Test
     @DisplayName("Pool에있는 entry객체수를 조회")
@@ -27,7 +24,7 @@ public class FlexibleAwsSQSClientPoolTest {
         }, (channel, message) -> {
         });
 
-        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(10, sqsClients, asyncClient);
+        AwsSQSClientPoolImpl flexibleAwsSQSClientPool = new AwsSQSClientPoolImpl(new PoolConfiguration(), asyncClient);
 
         assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(2);
     }
@@ -40,7 +37,7 @@ public class FlexibleAwsSQSClientPoolTest {
         }, (channel, message) -> {
         });
 
-        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(10, sqsClients, asyncClient);
+        AwsSQSClientPoolImpl flexibleAwsSQSClientPool = new AwsSQSClientPoolImpl(new PoolConfiguration(), asyncClient);
         flexibleAwsSQSClientPool.publishEntry();
         assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(3);
     }
@@ -51,7 +48,7 @@ public class FlexibleAwsSQSClientPoolTest {
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
         List<SQSClient> sqsClients = Arrays.asList((channel, message) -> {
         });
-        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(100, sqsClients, asyncClient);
+        AwsSQSClientPoolImpl flexibleAwsSQSClientPool = new AwsSQSClientPoolImpl(new PoolConfiguration(), asyncClient);
         int totalNumberOfTasks = 150;
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
@@ -70,18 +67,14 @@ public class FlexibleAwsSQSClientPoolTest {
     @Test
     @DisplayName("Open상태의 accessTime이 지난 entry가 존재할경우, cleaner스레드가 entry를 삭제 ")
     void returnZeroPoolSize() throws InterruptedException {
-        Timeout connectionTime = Timeout.defaultConnectionTime();
-        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS,10l);
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
-        List<SQSClient> sqsClients = new ArrayList<>();
-        FlexibleAwsSQSClientPoolImpl flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPoolImpl(200,connectionTime,idleTimeout,sqsClients, asyncClient);
+        AwsSQSClientPoolImpl flexibleAwsSQSClientPool = new AwsSQSClientPoolImpl(new PoolConfiguration(), asyncClient);
         int totalNumberOfTasks = 100;
-
 
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
-        for(int i = 0; i < totalNumberOfTasks; i++){
+        for (int i = 0; i < totalNumberOfTasks; i++) {
             executor.submit(() -> {
                 PoolElement poolElement = flexibleAwsSQSClientPool.publishEntry();
                 poolElement.open();

@@ -1,12 +1,10 @@
 package com.github.chunhodong.awssqsclient.pool;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.utils.Timeout;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class FlexibleAwsSQSClientPoolTest {
-
     @Test
     @DisplayName("Pool에있는 entry객체수를 조회")
     void returnFlxiblePoolSize() {
@@ -73,17 +70,17 @@ public class FlexibleAwsSQSClientPoolTest {
     @DisplayName("Open상태의 accessTime이 지난 entry가 존재할경우, cleaner스레드가 entry를 삭제 ")
     void returnZeroPoolSize() throws InterruptedException {
         Timeout connectionTime = Timeout.defaultConnectionTime();
-        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS,10l);
+        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS, 10l);
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
         List<SQSClient> sqsClients = new ArrayList<>();
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200,connectionTime,idleTimeout,sqsClients, asyncClient);
+        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200, connectionTime, idleTimeout, sqsClients, asyncClient);
         int totalNumberOfTasks = 100;
 
 
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
-        for(int i = 0; i < totalNumberOfTasks; i++){
+        for (int i = 0; i < totalNumberOfTasks; i++) {
             executor.submit(() -> {
                 PoolEntry poolEntry = flexibleAwsSQSClientPool.publishEntry();
                 poolEntry.open();

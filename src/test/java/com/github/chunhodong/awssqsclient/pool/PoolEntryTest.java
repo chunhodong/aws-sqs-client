@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PoolEntryTest {
-
     @Test
     @DisplayName("엔트리의 상태를 사용중으로 수정한다")
     void returnUseState() {

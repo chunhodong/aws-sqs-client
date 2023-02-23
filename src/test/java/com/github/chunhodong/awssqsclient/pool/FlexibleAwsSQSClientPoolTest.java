@@ -70,32 +70,36 @@ public class FlexibleAwsSQSClientPoolTest {
     }
 
     @Test
-    @DisplayName("멀티스레드상황에서 삭제횟수와 생성횟수가 같으면 pool개수는 0")
+    @DisplayName("Open상태의 accessTime이 지난 entry가 존재할경우, cleaner스레드가 entry를 삭제 ")
     void returnZeroPoolSize() throws InterruptedException {
         Timeout connectionTime = Timeout.defaultConnectionTime();
-        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS, 10l);
+        Timeout idleTimeout = new Timeout(TimeUnit.NANOSECONDS,10l);
         AmazonSQSBufferedAsyncClient asyncClient = mock(AmazonSQSBufferedAsyncClient.class);
         List<SQSClient> sqsClients = new ArrayList<>();
-        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200, connectionTime, idleTimeout, sqsClients, asyncClient);
+        FlexibleAwsSQSClientPool flexibleAwsSQSClientPool = new FlexibleAwsSQSClientPool(200,connectionTime,idleTimeout,sqsClients, asyncClient);
         int totalNumberOfTasks = 100;
 
 
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
-        for (int i = 0; i < totalNumberOfTasks; i++) {
-            flexibleAwsSQSClientPool.addEntry(new PoolEntry(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)), PoolEntryState.OPEN));
-        }
-
-        for (int i = 0; i < totalNumberOfTasks; i++) {
+        for(int i = 0; i < totalNumberOfTasks; i++){
             executor.submit(() -> {
-                flexibleAwsSQSClientPool.removeIdleEntry();
+                PoolEntry poolEntry = flexibleAwsSQSClientPool.publishEntry();
+                poolEntry.open();
                 latch.countDown();
             });
         }
-        latch.await();
+        Thread.sleep(1000);
 
-        assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(100);
+        latch.await();
+        Thread removeWorker = new Thread(() -> {
+            flexibleAwsSQSClientPool.removeIdleEntry();
+        });
+        removeWorker.start();
+        removeWorker.join();
+
+        assertThat(flexibleAwsSQSClientPool.getPoolSize()).isEqualTo(0);
     }
 
 }

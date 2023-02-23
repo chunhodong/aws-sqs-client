@@ -1,12 +1,10 @@
 package com.github.chunhodong.awssqsclient.pool;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.utils.Timeout;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,8 +83,8 @@ public class FlexibleAwsSQSClientPoolTest {
         CountDownLatch latch = new CountDownLatch(totalNumberOfTasks);
         for(int i = 0; i < totalNumberOfTasks; i++){
             executor.submit(() -> {
-                PoolEntry poolEntry = flexibleAwsSQSClientPool.publishEntry();
-                poolEntry.open();
+                PoolElement poolElement = flexibleAwsSQSClientPool.publishEntry();
+                poolElement.open();
                 latch.countDown();
             });
         }

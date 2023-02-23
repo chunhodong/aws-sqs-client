@@ -14,25 +14,24 @@ import java.util.stream.Collectors;
 public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
 
     protected final Object lock = new Object();
-    private final List<PoolEntry> entries;
+    private final List<PoolElement> entries;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
     private final AmazonSQSBufferedAsyncClient asyncClient;
     private final Timeout connectionTimeout;
     private final Timeout idleTimeout;
-    private final Map<ProxyAwsSQSClient, PoolEntry> proxySQSClients;
+    private final Map<ProxyAwsSQSClient, PoolElement> proxySQSClients;
 
     public DefaultAwsSQSClientPool(List<SQSClient> clients,
                                    AmazonSQSBufferedAsyncClient asyncClient,
                                    Timeout connectionTimeout,
                                    Timeout idleTimeout) {
         validateClientPool(clients, asyncClient);
-        List<PoolEntry> entries = clients.stream().map(PoolEntry::new).collect(Collectors.toList());
-        this.entries = entries;
+        this.entries = clients.stream().map(PoolElement::new).collect(Collectors.toList());
         this.asyncClient = asyncClient;
-        this.clientRequestTime = new ThreadLocal();
+        this.clientRequestTime = new ThreadLocal<>();
         this.connectionTimeout = Objects.requireNonNullElse(connectionTimeout, Timeout.defaultConnectionTime());
         this.idleTimeout = Objects.requireNonNullElse(idleTimeout, Timeout.defaultIdleTime());
-        this.proxySQSClients = Collections.synchronizedMap(new HashMap());
+        this.proxySQSClients = Collections.synchronizedMap(new HashMap<>());
     }
 
     public DefaultAwsSQSClientPool(List<SQSClient> clients,
@@ -47,26 +46,25 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
 
     @Override
     public SQSClient getClient() {
-        PoolEntry entry = getEntry();
+        PoolElement entry = getEntry();
         ProxyAwsSQSClient proxyAwsSQSClient = new ProxyAwsSQSClient(entry);
         this.proxySQSClients.put(proxyAwsSQSClient, entry);
         return proxyAwsSQSClient;
     }
 
     @Override
-    public PoolEntry getEntry() {
+    public PoolElement getEntry() {
         clientRequestTime.set(LocalDateTime.now());
         do {
-            for (PoolEntry entry : entries) {
-                if (entry.isClose()) continue;
+            for (PoolElement entry : entries) {
                 if (entry.close()) {
                     clientRequestTime.remove();
                     return entry;
                 }
             }
-            PoolEntry poolEntry = publishEntry();
-            if (Objects.nonNull(poolEntry)) {
-                return poolEntry;
+            PoolElement poolElement = publishEntry();
+            if (Objects.nonNull(poolElement)) {
+                return poolElement;
             }
         } while (isTimeout());
         clientRequestTime.remove();
@@ -75,17 +73,17 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
 
     @Override
     public void release(SQSClient sqsClient) {
-        PoolEntry poolEntry = proxySQSClients.remove(sqsClient);
-        poolEntry.open();
+        PoolElement poolElement = proxySQSClients.remove(sqsClient);
+        poolElement.open();
     }
 
-    protected abstract PoolEntry publishEntry();
+    protected abstract PoolElement publishEntry();
 
-    protected PoolEntry newEntry(PoolEntryState state) {
-        return new PoolEntry(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)), state);
+    protected PoolElement newEntry() {
+        return new PoolElement(new AwsSQSClient(new QueueMessagingTemplate(asyncClient)));
     }
 
-    protected void addEntry(PoolEntry entry) {
+    protected void addEntry(PoolElement entry) {
         entries.add(entry);
     }
 
@@ -98,7 +96,7 @@ public abstract class DefaultAwsSQSClientPool implements AwsSQSClientPool {
     }
 
     protected void removeIdleEntry() {
-        List<PoolEntry> idleEntrys = entries
+        List<PoolElement> idleEntrys = entries
                 .stream()
                 .filter(poolEntry -> poolEntry.isIdle(idleTimeout))
                 .collect(Collectors.toList());

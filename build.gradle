@@ -19,10 +19,7 @@ publishing {
 	}
 }
 
-
 dependencies {
-
-
 	implementation 'org.springframework:spring-context:5.3.22'
 	implementation 'org.springframework.boot:spring-boot-autoconfigure:2.7.3'
 	implementation 'org.springframework:spring-test:5.3.22'

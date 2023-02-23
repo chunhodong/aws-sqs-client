@@ -24,20 +24,16 @@ The SQSClient Pool라이브러리는 QueueMessagingTemplate의 문제점을 발�
 자체적인 풀링 라이브러리를 구현했습니다. 풀에 들어갈 요소는 QueueMessagingTemplate으로 QueueMessagingTemplate개수를 관리해서 AWS SQS요청 처리량을 늘리려는 목적입니다. 기술적으로 궁금한점이나 문제점에 대해선
 Issue남겨주시면 읽어보고 답변해보겠습니다
 
-
-
-
 ## How to start
 ```groovy
 repositories {
     maven { url 'https://jitpack.io' }
 }
 
-
 dependencies {
+    implementation 'com.github.chunhodong:aws-sqs-client-pool:0.0.7'
 }
 ```
-
 
 ## How to use
 ```yaml

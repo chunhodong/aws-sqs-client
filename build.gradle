@@ -2,12 +2,11 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '2.7.3'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
-	id 'maven-publish'
 }
 
 
 group = 'com.github.chunhodong'
-version = '0.0.2'
+version = '0.0.2-SNAPSHOT'
 sourceCompatibility = 11
 targetCompatibility = 11
 
@@ -15,15 +14,6 @@ repositories {
 	mavenCentral()
 }
 
-jar {
-	enabled = false
-}
-
-tasks.named("bootJar") {
-	archivesBaseName = '원하는이름1'
-	archiveFileName = '원하는이름2.jar'
-	archiveVersion = "0.0.0"
-}
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
@@ -34,15 +24,3 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-publishing {
-	publications {
-		maven(MavenPublication) {
-			from components.java
-		}
-	}
-}
-
-wrapper {
-	gradleVersion = "7.5"
-	distributionType = Wrapper.DistributionType.ALL
-}

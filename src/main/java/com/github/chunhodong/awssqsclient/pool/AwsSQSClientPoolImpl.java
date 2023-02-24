@@ -6,44 +6,42 @@ import com.github.chunhodong.awssqsclient.client.ProxyAwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
-    protected final Object lock = new Object();
     private final List<PoolElement> elements;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
     private final PoolConfiguration poolConfig;
     private final Map<ProxyAwsSQSClient, PoolElement> proxySQSClients;
-    private PoolCleaner poolCleaner;
+    private final AmazonSQSBufferedAsyncClient asyncClient;
+    private final BlockingQueue<PoolElement> temporaryElements;
 
-    public AwsSQSClientPoolImpl(PoolConfiguration poolConfig,
-                                AmazonSQSBufferedAsyncClient asyncClient) {
+    public AwsSQSClientPoolImpl(PoolConfiguration poolConfig, AmazonSQSBufferedAsyncClient asyncClient) {
         this.poolConfig = poolConfig;
+        this.asyncClient = asyncClient;
         this.elements = createElements(poolConfig, asyncClient);
         this.clientRequestTime = new ThreadLocal<>();
         this.proxySQSClients = Collections.synchronizedMap(new HashMap<>());
-        runPoolCleaner();
-
+        this.temporaryElements = new ArrayBlockingQueue<>(poolConfig.getPoolSize(), true);
+        runPoolManager();
     }
 
-    private void runPoolCleaner() {
-        if(poolConfig.isDefaultIdleTimeout()){
+    private void runPoolManager() {
+        if (poolConfig.isDefaultIdleTimeout()) {
             return;
         }
-        poolCleaner = new PoolCleaner().run();
+        new ElementCleaner().run();
+        new ElementCreator().run();
     }
 
     private List<PoolElement> createElements(PoolConfiguration poolConfig, AmazonSQSBufferedAsyncClient asyncClient) {
-        return Collections.nCopies(poolConfig.getPoolSize(), AwsSQSClient.createClient(asyncClient))
+        return new CopyOnWriteArrayList<>(Collections.nCopies(poolConfig.getPoolSize(), AwsSQSClient.createClient(asyncClient))
                 .stream()
                 .map(PoolElement::new)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -64,6 +62,12 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
                     return element;
                 }
             }
+
+            PoolElement element = newElement(asyncClient);
+            if (Objects.nonNull(element)) {
+                clientRequestTime.remove();
+                return element;
+            }
         } while (isTimeout());
         clientRequestTime.remove();
         throw new ConnectionWaitTimeout();
@@ -75,36 +79,70 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         poolElement.open();
     }
 
-    protected int getPoolSize() {
-        return elements.size();
+    private PoolElement newElement(AmazonSQSBufferedAsyncClient asyncClient) {
+        PoolElement poolElement = new PoolElement(AwsSQSClient.createClient(asyncClient), ElementState.CLOSE);
+        if (temporaryElements.offer(poolElement)) {
+            return poolElement;
+        }
+        return null;
     }
 
     private boolean isTimeout() {
         return !poolConfig.isConnectionTimeout(clientRequestTime.get());
     }
 
-    protected void removeIdleEntry() {
-        List<PoolElement> idleEntrys = elements
+    protected void cleanElement() {
+        List<PoolElement> removeElements = elements
                 .stream()
                 .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
                 .collect(Collectors.toList());
-        synchronized (lock) {
-            elements.removeAll(idleEntrys);
-        }
+        elements.removeAll(removeElements);
+
     }
 
-    private class PoolCleaner extends ScheduledThreadPoolExecutor {
-        private final static int DEFAULT_POOL_SIZE = 1;
+    private void addElement() {
+        int size = poolConfig.getPoolSize() - elements.size();
+        List<PoolElement> elements = temporaryElements.stream().limit(size).collect(Collectors.toList());
+        elements.stream().forEach(PoolElement::open);
+        temporaryElements.clear();
+        elements.addAll(elements);
 
-        public PoolCleaner(){
-            this(1);
+    }
+
+    private class ElementCleaner extends ScheduledThreadPoolExecutor {
+        private final static int DEFAULT_POOL_SIZE = 1;
+        private static final int DEFAULT_INITAIL_DELAY = 1000;
+        private static final int DEFAULT_DELAY_CLEANER = 30000;
+
+        public ElementCleaner() {
+            this(DEFAULT_POOL_SIZE);
         }
-        public PoolCleaner(int corePoolSize) {
+
+        private ElementCleaner(int corePoolSize) {
             super(corePoolSize);
         }
 
-        public PoolCleaner run(){
-            return this;
+        public void run() {
+            scheduleWithFixedDelay(() -> cleanElement(), DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
+        }
+    }
+
+
+    private class ElementCreator extends ScheduledThreadPoolExecutor {
+        private final static int DEFAULT_POOL_SIZE = 1;
+        private static final int DEFAULT_INITAIL_DELAY = 1000;
+        private static final int DEFAULT_DELAY_CLEANER = 20000;
+
+        public ElementCreator() {
+            this(DEFAULT_POOL_SIZE);
+        }
+
+        private ElementCreator(int corePoolSize) {
+            super(corePoolSize);
+        }
+
+        public void run() {
+            scheduleWithFixedDelay(() -> addElement(), DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
         }
     }
 }

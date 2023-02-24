@@ -4,6 +4,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.ProxyAwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
+import com.zaxxer.hikari.pool.HikariPool;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -52,8 +53,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         return proxyAwsSQSClient;
     }
 
-    @Override
-    public PoolElement getElement() {
+    private PoolElement getElement() {
         clientRequestTime.set(LocalDateTime.now());
         do {
             for (PoolElement element : elements) {
@@ -91,13 +91,12 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         return !poolConfig.isConnectionTimeout(clientRequestTime.get());
     }
 
-    protected void cleanElement() {
+    private void cleanElement() {
         List<PoolElement> removeElements = elements
                 .stream()
                 .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
                 .collect(Collectors.toList());
         elements.removeAll(removeElements);
-
     }
 
     private void addElement() {
@@ -126,7 +125,6 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
             scheduleWithFixedDelay(() -> cleanElement(), DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
         }
     }
-
 
     private class ElementCreator extends ScheduledThreadPoolExecutor {
         private final static int DEFAULT_POOL_SIZE = 1;

@@ -75,6 +75,14 @@ public class PoolConfiguration {
         return Objects.isNull(dateTime) ? false : ChronoUnit.MILLIS.between(dateTime, LocalDateTime.now()) > connectionTimeout;
     }
 
+    public boolean hasMinimumPoolSize(int poolSize) {
+        return poolSize <= DEFAULT_POOL_SIZE;
+    }
+
+    public int getMinimumPoolSize() {
+        return DEFAULT_POOL_SIZE;
+    }
+
     public static class PoolConfigurationBuilder {
 
         private long idleTimeout = DEFAULT_IDLE_TIMEOUT;

@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.chunhodong:aws-sqs-client-pool:0.0.7'
+    implementation 'com.github.chunhodong:aws-sqs-client-pool:0.0.8'
 }
 ```
 

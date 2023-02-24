@@ -1,19 +1,19 @@
 package com.github.chunhodong.awssqsclient.client;
 
 
-import com.github.chunhodong.awssqsclient.pool.PoolEntry;
+import com.github.chunhodong.awssqsclient.pool.PoolElement;
 
 import java.util.Objects;
 
 public class ProxyAwsSQSClient implements SQSClient {
 
     private SQSClient sqsClient;
-    private PoolEntry poolEntry;
+    private PoolElement poolElement;
 
-    public ProxyAwsSQSClient(PoolEntry poolEntry) {
-        Objects.nonNull(poolEntry);
-        this.sqsClient = poolEntry.getSqsClient();
-        this.poolEntry = poolEntry;
+    public ProxyAwsSQSClient(PoolElement poolElement) {
+        Objects.nonNull(poolElement);
+        this.sqsClient = poolElement.getSqsClient();
+        this.poolElement = poolElement;
     }
 
     @Override

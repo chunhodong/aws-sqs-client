@@ -39,15 +39,4 @@ public class AwsSQSClientTemplateTest {
                 .build())
                 .isInstanceOf(NullPointerException.class);
     }
-
-    @Test
-    @DisplayName("템플릿 객체에 고정사이트풀인데 poolSize가 없으면 생성실패")
-    void throwsExceptionWhenNonePoolSizeIfFixedPool() {
-        assertThatThrownBy(() -> AwsSQSClientTemplate.builder()
-                .asyncClient(new AmazonSQSBufferedAsyncClient(null))
-                .channel("test channel")
-                .isFixedPoolsize(true)
-                .build())
-                .isInstanceOf(NullPointerException.class);
-    }
 }

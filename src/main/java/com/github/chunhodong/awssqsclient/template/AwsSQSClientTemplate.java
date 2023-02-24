@@ -1,22 +1,15 @@
 package com.github.chunhodong.awssqsclient.template;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
-import com.github.chunhodong.awssqsclient.pool.FixedAwsSQSClientPool;
-import com.github.chunhodong.awssqsclient.pool.FlexibleAwsSQSClientPool;
-import org.springframework.stereotype.Component;
+import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPoolImpl;
+import com.github.chunhodong.awssqsclient.pool.PoolConfiguration;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
-@Component
 public class AwsSQSClientTemplate<T> {
 
-    private static final int DEFAULT_MAX_POOL_SIZE = 100;
-    private static final int DEFAULT_MIN_POOL_SIZE = 1;
     private final String channel;
     private final AwsSQSClientPool clientPool;
 
@@ -27,28 +20,13 @@ public class AwsSQSClientTemplate<T> {
     }
 
     private AwsSQSClientPool createPool(AwsSQSClientTemplateBuilder builder) {
-        int poolSize = getPoolSize(builder.isFixedPoolsize, builder.poolSize);
-        List<SQSClient> clients = createClients(builder.isFixedPoolsize, poolSize, builder.asyncClient);
-        return builder.isFixedPoolsize
-                ? new FixedAwsSQSClientPool(clients, builder.asyncClient)
-                : new FlexibleAwsSQSClientPool(poolSize, clients, builder.asyncClient);
-    }
-
-    private List<SQSClient> createClients(boolean isFixedPoolsize, int maxPoolSize, AmazonSQSBufferedAsyncClient asyncClient) {
-        int poolSize = isFixedPoolsize ? maxPoolSize : DEFAULT_MIN_POOL_SIZE;
-        return Collections.nCopies(poolSize, AwsSQSClient.createClient(asyncClient));
-    }
-
-    private int getPoolSize(boolean isFixedPoolsize, Integer maxPoolSize) {
-        return !isFixedPoolsize && Objects.isNull(maxPoolSize) ? DEFAULT_MAX_POOL_SIZE : maxPoolSize;
+        return new AwsSQSClientPoolImpl(builder.poolConfig, builder.asyncClient);
     }
 
     private void validationAttribute(AwsSQSClientTemplateBuilder builder) {
+        builder.poolConfig = Objects.requireNonNullElse(builder.poolConfig, new PoolConfiguration());
         Objects.requireNonNull(builder.asyncClient);
         Objects.requireNonNull(builder.channel);
-        if (builder.isFixedPoolsize) {
-            Objects.requireNonNull(builder.poolSize);
-        }
     }
 
     public void send(T message) {
@@ -69,13 +47,12 @@ public class AwsSQSClientTemplate<T> {
 
     public static class AwsSQSClientTemplateBuilder {
 
-        private Integer poolSize;
+        private PoolConfiguration poolConfig;
         private String channel;
         private AmazonSQSBufferedAsyncClient asyncClient;
-        private boolean isFixedPoolsize;
 
-        public AwsSQSClientTemplateBuilder poolSize(int poolSize) {
-            this.poolSize = poolSize;
+        public AwsSQSClientTemplateBuilder poolConfig(PoolConfiguration poolConfig) {
+            this.poolConfig = poolConfig;
             return this;
         }
 
@@ -86,11 +63,6 @@ public class AwsSQSClientTemplate<T> {
 
         public AwsSQSClientTemplateBuilder asyncClient(AmazonSQSBufferedAsyncClient asyncClient) {
             this.asyncClient = asyncClient;
-            return this;
-        }
-
-        public AwsSQSClientTemplateBuilder isFixedPoolsize(boolean isFixedPoolsize) {
-            this.isFixedPoolsize = isFixedPoolsize;
             return this;
         }
 

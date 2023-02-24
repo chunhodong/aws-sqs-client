@@ -69,7 +69,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
             }
         } while (isTimeout());
         clientRequestTime.remove();
-        throw new ConnectionWaitTimeout();
+        throw new ConnectionTimeoutException();
     }
 
     @Override

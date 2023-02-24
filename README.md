@@ -36,13 +36,39 @@ dependencies {
 ```
 
 ## How to use
-```yaml
+```java
+@Configuration
+public class AwsSQSClientTemplateConfig {
+    @Value("${cloud.aws.credentials.accessKey}")
+    private String accessKey;
+    @Value("${cloud.aws.credentials.secretKey}")
+    private String secretKey;
+    @Value("${cloud.aws.region.static}")
+    private String region;
+    @Value("${cloud.aws.sqs.queue.url}")
+    private String url;
+    @Value("${cloud.aws.sqs.queue.name}")
+    private String channel;
+
+    @Bean
+    public AwsSQSClientTemplate awsSQSClientTemplate() {
+        AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder
+                .standard()
+                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(url, region));
+        AmazonSQSBufferedAsyncClient asyncClient = new AmazonSQSBufferedAsyncClient(builder.build());
+        
+        return AwsSQSClientTemplate.builder()
+                .asyncClient(asyncClient)
+                .channel(channel)
+                .poolConfig(PoolConfiguration.builder()
+                        .poolSize(300)
+                        .idleTimeout(30000)
+                        .connectionTimeout(30000)
+                        .build())
+                .build();
+    }
+}
+
 
 ```
-
-```yaml
-
-
-```
-
-## Effect of use

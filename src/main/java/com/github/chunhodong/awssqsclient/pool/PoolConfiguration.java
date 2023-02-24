@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-import static com.github.chunhodong.awssqsclient.pool.PoolException.MIN_IDLE_TIMEOUT_EXCEPTION;
-import static com.github.chunhodong.awssqsclient.pool.PoolException.NEGATIVE_IDLE_TIMEOUT_EXCEPTION;
+import static com.github.chunhodong.awssqsclient.pool.PoolException.*;
 
 public class PoolConfiguration {
+
     private static final long MIN_IDLE_TIMEOUT = 10000;
     private static final long MIN_CONNECTION_TIMEOUT = 10000;
     private static final long DEFAULT_IDLE_TIMEOUT = 0;
@@ -42,6 +42,20 @@ public class PoolConfiguration {
 
     private void validationConfiguration(PoolConfigurationBuilder builder) {
         validationIdleTimeout(builder.idleTimeout);
+        validationConnectionTimeout(builder.connectionTimeout);
+        validationPoolSize(builder.poolSize);
+    }
+
+    private void validationPoolSize(int poolSize) {
+        if(poolSize < DEFAULT_POOL_SIZE){
+            throw new PoolException(MIN_POOL_SIZE_EXCEPTION);
+        }
+    }
+
+    private void validationConnectionTimeout(long connectionTimeout) {
+        if(connectionTimeout < MIN_CONNECTION_TIMEOUT){
+            throw new PoolException(MIN_CONNECTION_TIMEOUT_EXCEPTION);
+        }
     }
 
     private void validationIdleTimeout(long idleTimeout) {
@@ -61,7 +75,16 @@ public class PoolConfiguration {
         return Objects.isNull(dateTime) ? false : ChronoUnit.MILLIS.between(dateTime, LocalDateTime.now()) > connectionTimeout;
     }
 
+    public boolean hasMinimumPoolSize(int poolSize) {
+        return poolSize <= DEFAULT_POOL_SIZE;
+    }
+
+    public int getMinimumPoolSize() {
+        return DEFAULT_POOL_SIZE;
+    }
+
     public static class PoolConfigurationBuilder {
+
         private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
         private long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
         private int poolSize = DEFAULT_POOL_SIZE;
@@ -75,7 +98,6 @@ public class PoolConfiguration {
             this.idleTimeout = idleTimeout;
             return this;
         }
-
         /**
          * The maximum number of milliseconds that a client will wait for a connection from the pool.
          * If this time is exceeded without a connection becoming available, a ConnectionTimeoutException will be thrown from

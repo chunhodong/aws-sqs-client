@@ -61,7 +61,6 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
                     return element;
                 }
             }
-
             PoolElement element = newElement(asyncClient);
             if (Objects.nonNull(element)) {
                 clientRequestTime.remove();
@@ -91,9 +90,14 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     }
 
     private void cleanElement() {
+        int poolSize = elements.size();
+        if(poolConfig.hasMinimumPoolSize(poolSize)){
+            return;
+        }
         List<PoolElement> removeElements = elements
                 .stream()
                 .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
+                .limit(poolSize - poolConfig.getMinimumPoolSize())
                 .collect(Collectors.toList());
         elements.removeAll(removeElements);
     }

@@ -1,17 +1,17 @@
 package com.github.chunhodong.awssqsclient.client;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-@Component
-@RequiredArgsConstructor
 public class AwsSQSClient implements SQSClient {
 
-    private final QueueMessagingTemplate queueMessagingTemplate;
+    private QueueMessagingTemplate queueMessagingTemplate;
+
+    public AwsSQSClient(QueueMessagingTemplate queueMessagingTemplate) {
+        this.queueMessagingTemplate = queueMessagingTemplate;
+    }
 
     @Override
     public void send(String channel, Object message) {

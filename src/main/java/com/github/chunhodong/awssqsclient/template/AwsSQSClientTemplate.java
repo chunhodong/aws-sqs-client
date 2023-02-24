@@ -1,18 +1,13 @@
 package com.github.chunhodong.awssqsclient.template;
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPoolImpl;
 import com.github.chunhodong.awssqsclient.pool.PoolConfiguration;
-import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
-@Component
 public class AwsSQSClientTemplate<T> {
 
     private final String channel;

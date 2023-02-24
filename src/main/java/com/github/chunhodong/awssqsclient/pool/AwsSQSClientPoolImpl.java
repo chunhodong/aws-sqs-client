@@ -4,7 +4,6 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.ProxyAwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
-import com.zaxxer.hikari.pool.HikariPool;
 
 import java.time.LocalDateTime;
 import java.util.*;

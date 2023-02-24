@@ -17,9 +17,14 @@ public class PoolElement {
     }
 
     public PoolElement(SQSClient sqsClient) {
-        Objects.nonNull(sqsClient);
+        this(sqsClient, ElementState.OPEN);
+    }
+
+    public PoolElement(SQSClient sqsClient, int state) {
+        Objects.requireNonNull(sqsClient);
         this.sqsClient = sqsClient;
-        this.state = ElementState.OPEN;
+        this.state = state;
+        accessTime = System.currentTimeMillis();
     }
 
     public SQSClient getSqsClient() {
@@ -27,21 +32,18 @@ public class PoolElement {
     }
 
     public void open() {
-        state = ElementState.OPEN;
         accessTime = System.currentTimeMillis();
+        stateUpdater.compareAndSet(this, ElementState.CLOSE, ElementState.OPEN);
     }
 
     public boolean close() {
+        accessTime = System.currentTimeMillis();
         return stateUpdater.compareAndSet(this, ElementState.OPEN, ElementState.CLOSE);
+
     }
 
     public boolean isIdle(long idleTimeout) {
         return state == ElementState.OPEN && System.currentTimeMillis() - accessTime > idleTimeout;
-    }
-
-    private static class ElementState {
-        public static int OPEN = 1;
-        public static int CLOSE = 0;
     }
 
 }

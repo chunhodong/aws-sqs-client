@@ -3,23 +3,27 @@
 <br>
 [Eng.ver]
 <br>
-The AwsSqSClientPool is a pooling library created to improve the shortcomings of the AmazonSQSClient provided by AWS. AmazonSQSClient is a client library that can send messages to AWS Simple Queue (SQS). It uses Apache's HttpClient library internally to send messages to AWS SQS based on http requests.<br><br>
-However, AmazonSQSClient fixed the field properties of the Apache http library, making it impossible to tune.
-The biggest drawback is that the maxPerRoute property of PoolingHttpClientConnectionManager used by Apache HttpClient for connection pooling is fixed to 2.
-As a result, the number of request connections that can access AWS SQS simultaneously is limited to two. Even if you increase the number of threads in the application, the throughput does not change significantly because the number of maxPerRoute is fixed.
-<br><br>To improve this problem
-I implemented my own pooling library. The purpose of the element to be put into the pool is to increase the number of concurrent requests for AWS SQS by managing the number of AmazonSQSClients with AmazonSQSClient. For technical questions or problems
-If you leave an issue, I will read it and respond.
+Spring framework provides QueueMessagingTemplate to send messages to Aws Simple Queue(SQS)
+Internally, AmazonSQSBufferedAsyncClient's sendMessageSync is called to send the message.
+The sendMessageSync method receives the result of Future type and then calls the get method to wait for the message
+In this method, since the calling thread waits for the task to complete, multiple requests cannot be processed simultaneously
+
+To improve this problem, I created an Aws Sqs Client Pool that pools QueueMessagingTemplate.
+Aws Sqs Client Pool pools and manages QueueMessagingTemplate instances. You can use the pooled QueueMessagingTemplate using the AwsSQSClientTemplate by setting the pooling condition.
+If you have any technical questions or problems, please leave them on github issues and we will check and answer them.
 
 [Kor.ver]
 <br>
-AwsSqSClientPool라이브러리는 AWS에서 제공하는 AmazonSQSClient의 단점을 개선하기 위해 만든 풀링라이브러리입니다. AmazonSQSClient는 Aws Simple Queue(SQS)에 메시지를 보낼수있는 클라이언트 라이브러리입니다.내부적으로는 Apache의 HttpClient라이브러리를 사용해, http요청을 기반으로 Aws SQS에 메시지를 전송합니다.<br><br>
-그런데 AmazonSQSClient는 Apache http라이브러리의 필드속성을 고정시켜서 튜닝을 할 수 없게 만들어놨습니다.
-가장 큰 단점은 Apache HttpClient가 Connection Pooling을 위해 사용하는 PoolingHttpClientConnectionManager의 maxPerRoute속성을 2로 고정시켜놓은 문제입니다.
-이로 인해 AWS SQS에 동시접근할수있는 요청 Connection수는 2개로 제한이 됩니다. 어플리케이션상에서 스레드를 늘려도 maxPerRoute개수가 고정되있기때문에 처리량은 크게 변하지 않습니다. 
-<br><br>이 문제를 개선하기위해
-자체적인 풀링 라이브러리를 구현했습니다. 풀에 들어갈 요소는 AmazonSQSClient로 AmazonSQSClient개수를 관리해서 AWS SQS의 동시요청수를 늘리려는 목적입니다. 기술적으로 궁금한점이나 문제점에 대해선
-Issue남겨주시면 읽어보고 답변해보겠습니다.
+Springframework는 Aws Simple Queue에 메시지를 전송하기위해 QueueMessagingTemplate을 제공합니다. 
+내부에서는 메시지를 전송하기위해 AmazonSQSBufferedAsyncClient의 sendMessageSync를 호출합니다.
+sendMessageSync메소드는 Future타입의 결과를 반환하고 이후 get메소드를 호출해 메시지전송 결과를 기다립니다.  
+이 방법은 호출스레드가 작업이 완료할때 까지 기다리기때문에 여러 요청을 동시에 처리할 수 없고 결과적으로 퍼포먼스가 떨어지게 됩니다.
+
+이 문제를 개선하기 위해 QueueMessagingTemplate을 풀링해두는 Aws Sqs Client Pool을 만들어봤습니다.
+Aws Sqs Client Pool은 QueueMessagingTemplate인스턴스들을 풀링해두고 관리합니다. AwsSQSClientTemplateBuilder를 이용하여
+풀링 조건을 설정하면 AwsSQSClientTemplate을 사용하여 풀링된 QueueMessagingTemplate를 사용할 수 있습니다.
+기술적으로 궁금한점이나 문제점에 대해선 github 이슈에 남겨주시면 확인하고 답변드리겠습니다.
+
 
 ## How to start
 ```groovy

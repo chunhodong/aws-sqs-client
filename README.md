@@ -3,10 +3,10 @@
 <br>
 [Eng.ver]
 <br>
-Spring framework provides QueueMessagingTemplate to send messages to Aws Simple Queue(SQS)
-Internally, AmazonSQSBufferedAsyncClient's sendMessageSync is called to send the message.
-The sendMessageSync method receives the result of Future type and then calls the get method to wait for the message
-In this method, since the calling thread waits for the task to complete, multiple requests cannot be processed simultaneously
+Spring framework provides QueueMessagingTemplate to send messages to Aws Simple Queue.
+Internally, it calls sendMessageSync of AmazonSQSBufferedAsyncClient to send the message.
+The sendMessageSync returns a result of Future type, and the calling thread calls get to wait for the message transmission result.
+As a result, since the calling thread waits until the message transmission is finished, multiple requests cannot be processed simultaneously, resulting in poor performance.
 
 To improve this problem, I created an Aws Sqs Client Pool that pools QueueMessagingTemplate.
 Aws Sqs Client Pool pools and manages QueueMessagingTemplate instances. You can use the pooled QueueMessagingTemplate using the AwsSQSClientTemplate by setting the pooling condition.
@@ -16,8 +16,8 @@ If you have any technical questions or problems, please leave them on github iss
 <br>
 Springframework는 Aws Simple Queue에 메시지를 전송하기위해 QueueMessagingTemplate을 제공합니다. 
 내부에서는 메시지를 전송하기위해 AmazonSQSBufferedAsyncClient의 sendMessageSync를 호출합니다.
-sendMessageSync메소드는 Future타입의 결과를 반환하고 이후 get메소드를 호출해 메시지전송 결과를 기다립니다.  
-이 방법은 호출스레드가 작업이 완료할때 까지 기다리기때문에 여러 요청을 동시에 처리할 수 없고 결과적으로 퍼포먼스가 떨어지게 됩니다.
+sendMessageSync메소드는 Future타입의 결과를 반환하고 호출스레드는 get메소드를 호출해 메시지전송결과를 기다립니다.  
+이 방법은 메시지전송이 끝날때까지 호출스레드가 대기하기때문에 여러 요청을 동시에 처리할 수 없고 결과적으로 퍼포먼스가 떨어지게 됩니다.
 
 이 문제를 개선하기 위해 QueueMessagingTemplate을 풀링해두는 Aws Sqs Client Pool을 만들어봤습니다.
 Aws Sqs Client Pool은 QueueMessagingTemplate인스턴스들을 풀링해두고 관리합니다. AwsSQSClientTemplateBuilder를 이용하여

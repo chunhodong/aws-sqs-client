@@ -4,6 +4,8 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.AwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.ProxyAwsSQSClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -11,7 +13,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
-
+    private final Logger logger = LoggerFactory.getLogger(AwsSQSClientPoolImpl.class);
     private final List<PoolElement> elements;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
     private final PoolConfiguration poolConfig;
@@ -78,7 +80,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     }
 
     private PoolElement newElement(AmazonSQSBufferedAsyncClient asyncClient) {
-        if(elements.size() >= poolConfig.getPoolSize()){
+        if (elements.size() >= poolConfig.getPoolSize()) {
             return null;
         }
         PoolElement poolElement = new PoolElement(AwsSQSClient.createClient(asyncClient), ElementState.CLOSE);
@@ -94,7 +96,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
     private void cleanElement() {
         int poolSize = elements.size();
-        if(poolConfig.hasMinimumPoolSize(poolSize)){
+        if (poolConfig.hasMinimumPoolSize(poolSize)) {
             return;
         }
         List<PoolElement> removeElements = elements
@@ -102,6 +104,9 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
                 .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
                 .limit(poolSize - poolConfig.getMinimumPoolSize())
                 .collect(Collectors.toList());
+        int idlePoolSize = removeElements.size();
+        int activePoolSize = poolSize - idlePoolSize;
+        logger.debug("current poolsize-{}, active poolsize-{}, idle poolsize-{}", poolSize, activePoolSize, idlePoolSize);
         elements.removeAll(removeElements);
     }
 
@@ -111,7 +116,6 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         elements.stream().forEach(PoolElement::open);
         temporaryElements.clear();
         elements.addAll(elements);
-
     }
 
     private class ElementCleaner extends ScheduledThreadPoolExecutor {

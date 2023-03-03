@@ -6,11 +6,13 @@ import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPoolImpl;
 import com.github.chunhodong.awssqsclient.pool.ConnectionTimeoutException;
 import com.github.chunhodong.awssqsclient.pool.PoolConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 public class AwsSQSClientTemplate<T> {
-
+    private final Logger logger = LoggerFactory.getLogger(AwsSQSClientTemplate.class);
     private final String channel;
     private final AwsSQSClientPool clientPool;
 
@@ -37,10 +39,10 @@ public class AwsSQSClientTemplate<T> {
             sqsClient.send(channel, message);
         }
         catch (ConnectionTimeoutException exception){
-            exception.printStackTrace();
+            logger.info("cliient pool unexpected exception - {}",exception.getMessage());
         }
         catch (Exception exception){
-            exception.printStackTrace();
+            logger.info("cliient pool unexpected exception - {}",exception.getMessage());
         }
         finally {
             if (Objects.nonNull(sqsClient)) {

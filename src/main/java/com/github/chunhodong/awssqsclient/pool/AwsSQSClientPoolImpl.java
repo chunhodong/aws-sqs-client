@@ -78,6 +78,9 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     }
 
     private PoolElement newElement(AmazonSQSBufferedAsyncClient asyncClient) {
+        if(elements.size() >= poolConfig.getPoolSize()){
+            return null;
+        }
         PoolElement poolElement = new PoolElement(AwsSQSClient.createClient(asyncClient), ElementState.CLOSE);
         if (temporaryElements.offer(poolElement)) {
             return poolElement;

@@ -4,6 +4,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.github.chunhodong.awssqsclient.client.SQSClient;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPool;
 import com.github.chunhodong.awssqsclient.pool.AwsSQSClientPoolImpl;
+import com.github.chunhodong.awssqsclient.pool.ConnectionTimeoutException;
 import com.github.chunhodong.awssqsclient.pool.PoolConfiguration;
 
 import java.util.Objects;
@@ -34,7 +35,14 @@ public class AwsSQSClientTemplate<T> {
         try {
             sqsClient = clientPool.getClient();
             sqsClient.send(channel, message);
-        } finally {
+        }
+        catch (ConnectionTimeoutException exception){
+            exception.printStackTrace();
+        }
+        catch (Exception exception){
+            exception.printStackTrace();
+        }
+        finally {
             if (Objects.nonNull(sqsClient)) {
                 clientPool.release(sqsClient);
             }

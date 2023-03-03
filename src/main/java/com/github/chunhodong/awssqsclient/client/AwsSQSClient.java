@@ -20,8 +20,8 @@ public class AwsSQSClient implements SQSClient {
     }
 
     private void validateMessage(String channel, Object message) {
-        Objects.nonNull(channel);
-        Objects.nonNull(message);
+        Objects.requireNonNull(channel);
+        Objects.requireNonNull(message);
     }
 
     public static AwsSQSClient createClient(AmazonSQSBufferedAsyncClient asyncClient) {

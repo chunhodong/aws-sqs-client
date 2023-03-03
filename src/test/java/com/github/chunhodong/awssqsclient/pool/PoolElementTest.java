@@ -38,5 +38,4 @@ public class PoolElementTest {
         assertThat(poolElement.isIdle(10)).isTrue();
 
     }
-
 }

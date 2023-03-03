@@ -11,7 +11,7 @@ public class ProxyAwsSQSClient implements SQSClient {
     private PoolElement poolElement;
 
     public ProxyAwsSQSClient(PoolElement poolElement) {
-        Objects.nonNull(poolElement);
+        Objects.requireNonNull(poolElement);
         this.sqsClient = poolElement.getSqsClient();
         this.poolElement = poolElement;
     }

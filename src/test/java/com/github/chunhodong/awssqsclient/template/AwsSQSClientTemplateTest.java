@@ -9,8 +9,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 public class AwsSQSClientTemplateTest {
-
-
     @Test
     @DisplayName("템플릿 객체를 생성한다")
     void createClientTemplate() {

@@ -13,6 +13,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
+
     private final Logger logger = LoggerFactory.getLogger(AwsSQSClientPoolImpl.class);
     private final List<PoolElement> elements;
     private final ThreadLocal<LocalDateTime> clientRequestTime;
@@ -95,6 +96,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     }
 
     private class ElementCleaner extends ScheduledThreadPoolExecutor {
+
         private final static int DEFAULT_POOL_SIZE = 1;
         private static final int DEFAULT_INITAIL_DELAY = 1000;
         private static final int DEFAULT_DELAY_CLEANER = 30000;
@@ -129,6 +131,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
     }
 
     private class ElementCreator extends ScheduledThreadPoolExecutor {
+
         private final static int DEFAULT_POOL_SIZE = 1;
         private static final int DEFAULT_INITAIL_DELAY = 1000;
         private static final int DEFAULT_DELAY_CLEANER = 20000;

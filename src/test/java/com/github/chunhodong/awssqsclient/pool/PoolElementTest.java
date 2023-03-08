@@ -22,7 +22,9 @@ public class PoolElementTest {
     void returnUnuseState() {
         PoolElement poolElement = new PoolElement((channel, message) -> {
         });
+
         poolElement.close();
+
         assertThat(poolElement.close()).isFalse();
     }
 

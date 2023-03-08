@@ -17,7 +17,6 @@ public class AwsSQSClientTest {
     @DisplayName("채널과 메시지가 존재하면 메시지를 전송")
     void createClientTemplate() {
         QueueMessagingTemplate queueMessagingTemplate = mock(QueueMessagingTemplate.class);
-
         AwsSQSClient awsSQSClient = new AwsSQSClient(queueMessagingTemplate);
         doNothing().when(queueMessagingTemplate).convertAndSend(anyString(), (Object) any());
 

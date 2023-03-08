@@ -94,30 +94,6 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         return !poolConfig.isConnectionTimeout(clientRequestTime.get());
     }
 
-    private void cleanElement() {
-        int poolSize = elements.size();
-        if (poolConfig.hasMinimumPoolSize(poolSize)) {
-            return;
-        }
-        List<PoolElement> removeElements = elements
-                .stream()
-                .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
-                .limit(poolSize - poolConfig.getMinimumPoolSize())
-                .collect(Collectors.toList());
-        int idlePoolSize = removeElements.size();
-        int activePoolSize = poolSize - idlePoolSize;
-        logger.debug("current poolsize-{}, active poolsize-{}, idle poolsize-{}", poolSize, activePoolSize, idlePoolSize);
-        elements.removeAll(removeElements);
-    }
-
-    private void addElement() {
-        int size = poolConfig.getPoolSize() - elements.size();
-        List<PoolElement> elements = temporaryElements.stream().limit(size).collect(Collectors.toList());
-        elements.stream().forEach(PoolElement::open);
-        temporaryElements.clear();
-        elements.addAll(elements);
-    }
-
     private class ElementCleaner extends ScheduledThreadPoolExecutor {
         private final static int DEFAULT_POOL_SIZE = 1;
         private static final int DEFAULT_INITAIL_DELAY = 1000;
@@ -129,6 +105,22 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
         private ElementCleaner(int corePoolSize) {
             super(corePoolSize);
+        }
+
+        private void cleanElement() {
+            int poolSize = elements.size();
+            if (poolConfig.hasMinimumPoolSize(poolSize)) {
+                return;
+            }
+            List<PoolElement> removeElements = elements
+                    .stream()
+                    .filter(poolEntry -> poolEntry.isIdle(poolConfig.getIdleTimeout()))
+                    .limit(poolSize - poolConfig.getMinimumPoolSize())
+                    .collect(Collectors.toList());
+            int idlePoolSize = removeElements.size();
+            int activePoolSize = poolSize - idlePoolSize;
+            logger.debug("current poolsize-{}, active poolsize-{}, idle poolsize-{}", poolSize, activePoolSize, idlePoolSize);
+            elements.removeAll(removeElements);
         }
 
         public void run() {
@@ -147,6 +139,14 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
 
         private ElementCreator(int corePoolSize) {
             super(corePoolSize);
+        }
+
+        private void addElement() {
+            int size = poolConfig.getPoolSize() - elements.size();
+            List<PoolElement> elements = temporaryElements.stream().limit(size).collect(Collectors.toList());
+            elements.stream().forEach(PoolElement::open);
+            temporaryElements.clear();
+            elements.addAll(elements);
         }
 
         public void run() {

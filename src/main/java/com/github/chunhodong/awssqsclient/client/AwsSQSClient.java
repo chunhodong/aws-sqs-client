@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class AwsSQSClient implements SQSClient {
 
-    private QueueMessagingTemplate queueMessagingTemplate;
+    private final QueueMessagingTemplate queueMessagingTemplate;
 
     public AwsSQSClient(QueueMessagingTemplate queueMessagingTemplate) {
         this.queueMessagingTemplate = queueMessagingTemplate;

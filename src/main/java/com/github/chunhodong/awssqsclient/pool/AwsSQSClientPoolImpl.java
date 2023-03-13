@@ -126,7 +126,7 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         }
 
         public void run() {
-            scheduleWithFixedDelay(() -> cleanElement(), DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
+            scheduleWithFixedDelay(this::cleanElement, DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -147,13 +147,13 @@ public class AwsSQSClientPoolImpl implements AwsSQSClientPool {
         private void addElement() {
             int size = poolConfig.getPoolSize() - elements.size();
             List<PoolElement> elements = temporaryElements.stream().limit(size).collect(Collectors.toList());
-            elements.stream().forEach(PoolElement::open);
+            elements.forEach(PoolElement::open);
             temporaryElements.clear();
             elements.addAll(elements);
         }
 
         public void run() {
-            scheduleWithFixedDelay(() -> addElement(), DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
+            scheduleWithFixedDelay(this::addElement, DEFAULT_INITAIL_DELAY, DEFAULT_DELAY_CLEANER, TimeUnit.MILLISECONDS);
         }
     }
 }

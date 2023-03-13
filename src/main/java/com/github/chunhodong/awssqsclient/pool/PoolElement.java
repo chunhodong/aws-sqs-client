@@ -39,11 +39,10 @@ public class PoolElement {
     public boolean close() {
         accessTime = System.currentTimeMillis();
         return stateUpdater.compareAndSet(this, ElementState.OPEN, ElementState.CLOSE);
-
     }
 
     public boolean isIdle(long idleTimeout) {
         return state == ElementState.OPEN && System.currentTimeMillis() - accessTime > idleTimeout;
     }
-
 }
+

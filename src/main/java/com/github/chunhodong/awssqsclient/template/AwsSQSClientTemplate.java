@@ -37,14 +37,27 @@ public class AwsSQSClientTemplate<T> {
         try {
             sqsClient = clientPool.getClient();
             sqsClient.send(channel, message);
+        } catch (ConnectionTimeoutException exception) {
+            logger.info("cliient pool unexpected exception - {}", exception.getMessage());
+        } catch (Exception exception) {
+            logger.info("cliient pool unexpected exception - {}", exception.getMessage());
+        } finally {
+            if (Objects.nonNull(sqsClient)) {
+                clientPool.release(sqsClient);
+            }
         }
-        catch (ConnectionTimeoutException exception){
-            logger.info("cliient pool unexpected exception - {}",exception.getMessage());
-        }
-        catch (Exception exception){
-            logger.info("cliient pool unexpected exception - {}",exception.getMessage());
-        }
-        finally {
+    }
+
+    public void send(String channel, T message) {
+        SQSClient sqsClient = null;
+        try {
+            sqsClient = clientPool.getClient();
+            sqsClient.send(channel, message);
+        } catch (ConnectionTimeoutException exception) {
+            logger.info("cliient pool unexpected exception - {}", exception.getMessage());
+        } catch (Exception exception) {
+            logger.info("cliient pool unexpected exception - {}", exception.getMessage());
+        } finally {
             if (Objects.nonNull(sqsClient)) {
                 clientPool.release(sqsClient);
             }

@@ -4,8 +4,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 
 public class AwsSQSClientTemplateTest {
@@ -35,6 +34,18 @@ public class AwsSQSClientTemplateTest {
         assertThatThrownBy(() -> AwsSQSClientTemplate.builder()
                 .channel("test channel")
                 .build())
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("템플릿 객체에 전송채널이 null값이면 예외발생")
+    void throwsExceptionWhenChannelIsNull() {
+        AwsSQSClientTemplate awsSQSClientTemplate = AwsSQSClientTemplate.builder()
+                .channel("test channel")
+                .asyncClient(new AmazonSQSBufferedAsyncClient(null))
+                .build();
+
+        assertThatThrownBy(() -> awsSQSClientTemplate.send(null,"test message"))
                 .isInstanceOf(NullPointerException.class);
     }
 }
